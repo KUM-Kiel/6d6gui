@@ -1,25 +1,32 @@
-const child_process = require('child_process')
 const readline = require('readline')
 const fs = require('fs')
 
+import { ChildProcess, spawn } from 'child_process'
+import { Action } from './spawnProcess'
+
 // Class to set up a process and handle existing ones.
 class Process {
-  constructor (command, args, onExit) {
-    this.process = child_process.spawn(command, args)
+  process: ChildProcess
+  paused: boolean
+  error: Error | null
+  exitCode: number | null
+
+  constructor (command: string, args: string[], onExit: Function) {
+    this.process = spawn(command, args)
     this.paused = false
     this.error = null
     this.exitCode = null
-    this.process.on('error', e => {
+    this.process.on('error', (e: Error) => {
       this.error = e
       onExit()
     })
-    this.process.on('close', code => {
+    this.process.on('close', (code: number) => {
       this.exitCode = code
       onExit()
     })
   }
   // (Pause || Continue) or Cancel a process.
-  action (action) {
+  action (action: string) {
     if (this.isRunning()) {
       if (action === 'cancel') {
         if (this.paused) {
@@ -35,7 +42,7 @@ class Process {
       }
     }
   }
-  actions () {
+  actions (): Action[] {
     return [this.paused ? 'continue' : 'pause', 'cancel']
   }
   hasError () {
@@ -45,24 +52,26 @@ class Process {
     return this.exitCode === null && this.error === null
   }
   // Set general Standard -OUT/-IN/-ERR handling.
-  stdinFromFile (inputPath) {
+  stdinFromFile (inputPath: string) {
     if (!this.isRunning()) throw new Error('Process is not running')
     fs.createReadStream(inputPath).pipe(this.process.stdin)
   }
-  stdoutToFile (outputPath) {
+  stdoutToFile (outputPath: string) {
+    if (!this.process.stdout) throw Error('Wäh!')
     this.process.stdout.pipe(fs.createWriteStream(outputPath))
   }
-  stdoutToLines (outHandler) {
+  stdoutToLines (outHandler:  (a: string) => void) {
     const rl = readline.createInterface({
       input: this.process.stdout,
       crlfDelay: Infinity
     })
     rl.on('line', outHandler)
   }
-  stderrToFile (errPath) {
+  stderrToFile (errPath: string) {
+    if (!this.process.stderr) throw Error('Wäh!')
     this.process.stderr.pipe(fs.createWriteStream(errPath))
   }
-  stderrToLines (errHandler) {
+  stderrToLines (errHandler: Function) {
     const rl = readline.createInterface({
       input: this.process.stderr,
       crlfDelay: Infinity

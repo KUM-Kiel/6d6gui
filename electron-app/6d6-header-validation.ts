@@ -13,7 +13,7 @@ export interface Position {
 
 // Interface naming convention adapted to
 // JSON.parse(6d6info.stdout) output for convenience.
-export interface Combined6D6Header {
+export interface Combined6d6Header {
   version: 1 | 2,
   startTime: TaiDate,
   endTime: TaiDate,
@@ -33,7 +33,7 @@ export interface Combined6D6Header {
   comment: string
 }
 
-export const combine6D6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Header): Combined6D6Header => {
+export const combine6d6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Header): Combined6d6Header => {
   console.log([headerOne, headerTwo])
 
   if (headerOne.version !== headerTwo.version)
@@ -108,4 +108,4 @@ export const combine6D6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Hea
   }
 }
 
-export default combine6D6Headers
+export default combine6d6Headers

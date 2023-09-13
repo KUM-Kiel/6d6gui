@@ -9,7 +9,7 @@ const fswrite = util.promisify(fs.write)
 // sourcecode safe ebcdic converter
 const ebcdic = (s: string) => new Uint8Array(Array.from(s).map(c => '\x20\xa0\xe2\xe4\xe0\xe1\xe3\xe5\xe7\xf1\xa2\x2e\x3c\x28\x2b\x7c\x26\xe9\xea\xeb\xe8\xed\xee\xef\xec\xdf\x21\x24\x2a\x29\x3b\xac\x2d\x2f\xc2\xc4\xc0\xc1\xc3\xc5\xc7\xd1\xa6\x2c\x25\x5f\x3e\x3f\xf8\xc9\xca\xcb\xc8\xcd\xce\xcf\xcc\x60\x3a\x23\x40\x27\x3d\x22\xd8\x61\x62\x63\x64\x65\x66\x67\x68\x69\xab\xbb\xf0\xfd\xfe\xb1\xb0\x6a\x6b\x6c\x6d\x6e\x6f\x70\x71\x72\xaa\xba\xe6\xb8\xc6\xa4\xb5\x7e\x73\x74\x75\x76\x77\x78\x79\x7a\xa1\xbf\xd0\xdd\xde\xae\x5e\xa3\xa5\xb7\xa9\xa7\xb6\xbc\xbd\xbe\x5b\x5d\xaf\xa8\xb4\xd7\x7b\x41\x42\x43\x44\x45\x46\x47\x48\x49\xad\xf4\xf6\xf2\xf3\xf5\x7d\x4a\x4b\x4c\x4d\x4e\x4f\x50\x51\x52\xb9\xfb\xfc\xf9\xfa\xff\x5c\xf7\x53\x54\x55\x56\x57\x58\x59\x5a\xb2\xd4\xd6\xd2\xd3\xd5\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\xb3\xdb\xdc\xd9\xda'.indexOf(c)).map(c => c < 0 ? 0x40 : c + 0x40))
 
-import { Combined6D6Header } from './6d6-header-validation'
+import { Combined6d6Header } from './6d6-header-validation'
 
 interface SegyBinaryHeader {
   jobIdentificationNumber?: number,
@@ -164,7 +164,7 @@ export class SegyWriter  {
   }
 
   createTextHeader(lines: string[]) {
-    let bytes = new Uint8Array(3200)
+    let bytes: Uint8Array = new Uint8Array(3200)
     for (let l = 0; l < 40; ++l) {
       bytes.set(ebcdic((l < 10 ? 'C ' : 'C') + l), l * 80)
       for (let j = 3; j < 79; ++j) {
@@ -179,8 +179,8 @@ export class SegyWriter  {
   }
 
   createBinaryHeader(fields: SegyBinaryHeader) {
-    let bytes = new Uint8Array(400)
-    let segyHeader = new DataView(bytes.buffer)
+    let bytes: Uint8Array = new Uint8Array(400)
+    let segyHeader: DataView = new DataView(bytes.buffer)
 
     segyHeader.setInt32(0, fields.jobIdentificationNumber || 1)
     segyHeader.setInt32(4, fields.lineNumber || 1)
@@ -266,8 +266,8 @@ export class SegyWriter  {
   }
 
   createTraceHeader(fields: SegyTraceHeader) {
-    let bytes = new Uint8Array(400)
-    let segyHeader = new DataView(bytes.buffer)
+    let bytes: Uint8Array = new Uint8Array(400)
+    let segyHeader: DataView = new DataView(bytes.buffer)
 
     segyHeader.setInt32(0, fields.traceSequenceNumWithinLine)
     segyHeader.setInt32(4, fields.traceSequenceNumWithinFile)
@@ -429,14 +429,14 @@ export class SegyWriter  {
   }
 
   async writeSample(data: number) {
-    let bytes = new Uint8Array(4)
-    let view = new DataView(bytes.buffer)
+    let bytes: Uint8Array = new Uint8Array(4)
+    let view: DataView = new DataView(bytes.buffer)
     view.setInt32(0, data)
     return this.write(bytes)
   }
 
   static async create(filepath: string): Promise<SegyWriter> {
-    let fd = await fsopen(filepath, 'w')
+    let fd: number = await fsopen(filepath, 'w')
     return new SegyWriter(fd)
   }
 
@@ -451,7 +451,7 @@ export class SegyWriter  {
     }
   }
 
-  async writeHeader(d6Header: Combined6D6Header, numberSamplesPerDataTrace: number) {
+  async writeHeader(d6Header: Combined6d6Header, numberSamplesPerDataTrace: number): Promise<void> {
     await this.write(this.createTextHeader(['ja moin.']))
     await this.write(this.createBinaryHeader({
       numberSamplesPerDataTrace,
@@ -461,7 +461,7 @@ export class SegyWriter  {
     }))
   }
 
-  async writeTraceHeader(numSamplesInThisTrace: number) {
+  async writeTraceHeader(numSamplesInThisTrace: number): Promise<void> {
     let traceHeader = this.createTraceHeader({
       traceSequenceNumWithinLine: this.traceCounter,
       traceSequenceNumWithinFile: this.traceCounter,
@@ -471,7 +471,7 @@ export class SegyWriter  {
     await this.write(traceHeader)
   }
 
-  async close() {
+  async close(): Promise<void> {
     if (this.bufferPosition > 0) {
       await fswrite(this.fd, this.buffer.slice(0, this.bufferPosition))
     }
@@ -482,7 +482,7 @@ export class SegyWriter  {
 
 
 const test = async () => {
-  let writer = await SegyWriter.create('test.segy')
+  let writer: SegyWriter = await SegyWriter.create('test.segy')
   writer.createTextHeader(['No text for you'])
 
   console.log(writer)

@@ -5,9 +5,9 @@ const util = require('util')
 const fs = require('fs')
 const execFile = util.promisify(child_process.execFile)
 
-import TaskManager from './spawnProcess'
+import TaskManager, {Action} from './spawnProcess'
 import Watcher, { Device } from './6d6watcher'
-import Kum6D6 from './kum-6d6'
+import Kum6D6, {InfoJson} from './kum-6d6'
 import { stat } from 'fs/promises'
 
 let mainWindow: any
@@ -61,7 +61,7 @@ const checkForBinaries = () => {
   return fs.existsSync('/usr/local/bin/6d6info')
 }
 
-const binariesInstalled = checkForBinaries()
+const binariesInstalled: boolean = checkForBinaries()
 
 // Broadcasting something across the whole application.
 const broadcast = (ev: string, data: Object) => {
@@ -158,13 +158,13 @@ const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target
 }
 
 interface IpcEvent {
-  reply: (e: string, data: any) => void
+  reply: (name: string, data: any) => void
 }
 
 // Handling the UI request to open up a file/path picking dialogue.
 ipcMain.on('setup', async (event: IpcEvent, data: any) => {
   try {
-    let fileObject = await directoryChoiceDialogue(data.isFile, data.type)
+    let fileObject: {setup: string, error: Error, filename: string, dirPath: string, file: boolean, info: string | InfoJson, type: string } = await directoryChoiceDialogue(data.isFile, data.type)
     if (!fileObject.error) {
       try {
         if (process.platform === 'win32') {
@@ -245,7 +245,7 @@ ipcMain.on('6d6read', async (event: any, data: ReadData) => {
   }
 })
 
-interface MSeedData {
+export interface MSeedData {
   srcPath: string,
   srcFilename: string,
   destPath: string,
@@ -284,6 +284,6 @@ ipcMain.on('6d6mseed', (event: any, data: MSeedData) => {
 })
 
 // Forwarding of a UI induced action on a task.
-ipcMain.on('task-action', (e, id, action) => {
+ipcMain.on('task-action', (e: Error, id: string, action: Action) => {
   taskManager.action(id, action)
 })

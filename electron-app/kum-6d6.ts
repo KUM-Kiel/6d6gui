@@ -1,6 +1,6 @@
-import kum6D6HeaderRead, { memoryCompare } from './6d6-header'
+import kum6D6HeaderRead, { Kum6d6Header, memoryCompare } from './6d6-header'
 import TaiDate from './tai'
-import combine6D6Headers, { Combined6D6Header } from './6d6-header-validation'
+import combine6d6Headers, { Combined6d6Header } from './6d6-header-validation'
 import kum6D6MetaFrameRead, { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
 import File from './file'
 
@@ -42,11 +42,11 @@ export class Kum6D6 {
   position: number
   buffer: Uint8Array
   bufferOffset: number
-  header: Combined6D6Header
+  header: Combined6d6Header
   fileMetaDataStart: TaiDate
   fileMetaDataEnd: TaiDate
 
-  constructor(file: File, combinedHeader: Combined6D6Header /* startTime: TaiDate, endTime: TaiDate */) {
+  constructor(file: File, combinedHeader: Combined6d6Header /* startTime: TaiDate, endTime: TaiDate */) {
     this.file = file
     this.position = 1024
     this.buffer = new Uint8Array(4)
@@ -57,6 +57,7 @@ export class Kum6D6 {
   }
 
   async binarySearch(value: TaiDate, startTime: TaiDate, endTime: TaiDate, startOffset: number, endOffset: number): Promise<TaiDate> {
+
     if (endTime.t < startTime.t) throw new Error('End-position cannot be smaller than Start-position')
 
     // Gemessen an SuchZeitpunkt und Dateigröße bzw. Bytelänge von Samples den ersten guess möglichst Nahe am gesuchten Zeitpunkt halten  #
@@ -119,40 +120,40 @@ export class Kum6D6 {
     return foundTime
   }
 
-  static async open(filename: string) {
+  static async open(filename: string): Promise<Kum6D6> {
     let file = await File.open(filename)
 
-    let firstHeader = kum6D6HeaderRead(await file.read(0, 512))
-    let secondHeader = kum6D6HeaderRead(await file.read(512, 512))
-    let combinedHeader = combine6D6Headers(firstHeader, secondHeader)
+    let firstHeader: Kum6d6Header = kum6D6HeaderRead(await file.read(0, 512))
+    let secondHeader: Kum6d6Header = kum6D6HeaderRead(await file.read(512, 512))
+    let combinedHeader: Combined6d6Header = combine6d6Headers(firstHeader, secondHeader)
 
     return new Kum6D6(file, combinedHeader)
   }
 
   async read(callbacks: ReadCallbacks): Promise<boolean> {
     // TODO: Don't seek the file position for every readBlock() call
-    let firstWord = await this.file.read(this.position, 4)
+    let firstWord: DataView = await this.file.read(this.position, 4)
     // Because ByteOrder is BigEndian, we can check for n % mod2 === 1.
     if (firstWord.byteLength < 4) return false
-    let t = firstWord.getInt32(0)
+    let t: number = firstWord.getInt32(0)
     if (isOdd(t)) {
       // Check for end of recording.
       if (t === 13) return false
       // if not EoR, read the whole metaFrame.
-      let data = await this.file.read(this.position, 16)
+      let data: DataView = await this.file.read(this.position, 16)
       if (data.byteLength !== 16) return false
       this.position += 16
       // after successful read & increasing position - parse metaFrame.
       await parseMetaFrame(data, callbacks)
     } else {
-      const p = this.position
+      const p: number = this.position
       // Position increased by number of channels & channel size.
       this.position += (this.header.channels.length * 4)
       if (typeof callbacks.onSamples === 'function') {
-        let sampleData = await this.file.read(p, this.header.channels.length * 4)
+        let sampleData: DataView = await this.file.read(p, this.header.channels.length * 4)
         // Make sure the sampleData has the correct length.
         if (sampleData.byteLength < this.header.channels.length * 4) return false
-        let samples = new Int32Array(this.header.channels.length)
+        let samples: Int32Array = new Int32Array(this.header.channels.length)
         // Add read samples to sample-array and return via promise (?)
         for (let i = 0; i < samples.length; ++i) {
           samples[i] = sampleData.getInt32(i * 4)
@@ -178,7 +179,7 @@ export class Kum6D6 {
   }
 
   // should it read metaFrames and make conclusions/assumptions?
-  async readDesiredDuration(duration: number, instance: Kum6D6) {
+  async readDesiredDuration(duration: number, instance: Kum6D6): Promise<void> {
     // Duration in seconds?
     let iterations: number = this.header.sampleRate * duration
     let desiredSamples: Int32Array[] = []
@@ -211,7 +212,6 @@ async function test() {
   let test = await Kum6D6.open('../test.6d6')
 
   console.log(test.header)
-
 }
 
 if (require.main === module) {

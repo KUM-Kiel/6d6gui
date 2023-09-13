@@ -1,21 +1,22 @@
-// const { waitFor } = require('@testing-library/react')
+ const { waitFor } = require('@testing-library/react')
 const path = require('path')
 
 import Process from './process'
+import { MSeedData } from './main'
 
 // Filling up single digits with prepending zeros.
-const pad = n => (n < 10 ? '0' : '') + n
+const pad = (n: number): string => (n < 10 ? '0' : '') + n
 
-const calcPercentage = (done, total) => {
+const calcPercentage = (done: number, total: number): number => {
   return (100 * done) / total
 }
 // ETA = Estimated time of arrival (completion)
-const calcETA = (done, total, elapsed) => {
+const calcETA = (done: number, total: number, elapsed: number): string => {
   return formatTime(Math.ceil(((total - done) * (elapsed / done)) / 1000))
 }
 
 // Changing the display of numbers according to their size.
-const significant = n => {
+const significant = (n: number): string => {
   if (n < 10) {
     return n.toFixed(2)
   } else if (n < 100) {
@@ -26,7 +27,7 @@ const significant = n => {
 }
 
 // Returning a simpler representation of a given amount of bytes.
-const formatBytes = bytes => {
+const formatBytes = (bytes: number): string => {
   if (bytes < 1000) {
     return bytes + 'B'
   } else if (bytes < 1e6) {
@@ -40,18 +41,39 @@ const formatBytes = bytes => {
   }
 }
 
+export type Action = 'cancel' | 'continue' | 'pause' | 'confirm'
+
+export interface Task {
+  id: string,
+  title: string,
+  description: string,
+  progress: string,
+  percentage: number,
+  eta: string | null,
+  finished: boolean,
+  actions: Action[]
+}
+
+export type UpdateCallback = (tasks: Task[]) => void
+
+interface Table<a> {
+  [key: string]: a
+}
+
 // Handling tasks and creating the different 6D6 processes.
 class TaskManager {
+  tasks: Table<Task>
+  actions: Table<(a: Action) => void>
+  nextId: bigint
+  onUpdate: UpdateCallback
 
-
-
-  constructor (onUpdate) {
-    this.tasks: Process[] = {}
+  constructor (onUpdate: UpdateCallback) {
+    this.tasks = {}
     this.actions = {}
     this.nextId = 0n
     this.onUpdate = onUpdate
   }
-  action (id, action) {
+  action (id: string, action: Action) {
     const a = this.actions[id]
     if (typeof a === 'function') {
       a(action)
@@ -73,8 +95,8 @@ class TaskManager {
     this.nextId += 1n
     return id
   }
-  $6d6copy (from, to, filename, binInstalled) {
-    const id = this.getId()
+  $6d6copy (from: string, to: string, filename: string, binInstalled: boolean) {
+    const id: string = this.getId()
     const toChecked = /\.6d6$/.test(to) ? to : path.join(to, filename + '.6d6')
     /*   const command = binInstalled ? '6d6copy' :
 './bin/6d6copy' */
@@ -89,7 +111,7 @@ class TaskManager {
       }
     )
     // Pipes the output of the process into a task object.
-    p.stdoutToLines(line => {
+    p.stdoutToLines((line: string) => {
       const { done, total, elapsed } = JSON.parse(line)
       // TODO
       this.tasks[id].percentage = calcPercentage(done, total)
@@ -121,7 +143,7 @@ class TaskManager {
       actions: p.actions()
     }
   }
-  $6d6read (from, to, binInstalled) {
+  $6d6read (from: string, to: string, binInstalled: boolean) {
     const id = this.getId()
     const toChecked = /\.s2z$/.test(to) ? to : to + '.s2x'
     /*     const command = binInstalled ? '6d6read' :
@@ -132,7 +154,7 @@ class TaskManager {
       console.log(this.actions[id])
       this.update()
     })
-    p.stderrToLines(line => {
+    p.stderrToLines((line: string) => {
       console.log(line)
       const { done, total, elapsed } = JSON.parse(line)
       this.tasks[id].percentage = calcPercentage(done, total)
@@ -166,7 +188,7 @@ class TaskManager {
       actions: p.actions()
     }
   }
-  $6d6mseed (data, tempPath, binInstalled) {
+  $6d6mseed (data: MSeedData, tempPath: string, binInstalled: boolean) {
     let options = ['--json-progress']
     let insert = ''
     // All included/received options get added to the command call.
@@ -179,7 +201,7 @@ class TaskManager {
       if (data.network !== '') {
         options.push(`--network=${data.network}`)
       }
-      if (data.channels !== '') {
+      if (data.channels.length !== 0) {
         options.push(`--channels=${data.channels}`)
       }
       if (data.destPath !== '') {
@@ -266,7 +288,7 @@ class TaskManager {
 }
 
 // Converting a given full path to create a path to the 'main' directory.
-const convertTemplateToPath = (input, station) => {
+const convertTemplateToPath = (input: string, station: string) => {
   let temp = input.split('/')
   let result = []
   for (let i = 0; i <= temp.length; i++) {
@@ -284,7 +306,7 @@ const convertTemplateToPath = (input, station) => {
   return  path.join('/', ...result)
 }
 
-const formatTime = s => {
+const formatTime = (s: number) => {
   let r = pad(s % 60)
   s = Math.floor(s / 60)
   r = pad(s % 60) + ':' + r

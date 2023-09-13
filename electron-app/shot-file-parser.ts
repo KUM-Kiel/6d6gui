@@ -22,9 +22,9 @@ const getField = (fields: string[], name: string) => {
 }
 
 export const parseShotFile = (fileContent: string): Shot[] => {
-  const lines = fileContent.split(/\r?\n/g).filter(v => v)
-  const names = lines[0].split(/[ \t]+/g)
-  const nameIndices = {
+  const lines: string[] = fileContent.split(/\r?\n/g).filter(v => v)
+  const names: string[] = lines[0].split(/[ \t]+/g)
+  const nameIndices: {profile: number, shotNr: number, julday: number, y: number, h: number, m: number, s: number, ms: number, lat: number, lon: number, depth: number } = {
     profile: names.indexOf('profile'),
     shotNr: getField(names, 'shotNr'),
     julday: getField(names, 'julday'),
@@ -64,7 +64,7 @@ export const parseShotFile = (fileContent: string): Shot[] => {
 }
 
 export const parseShotFileSend = (fileContent: string): Shot[] => {
-  const regex = /^([^ ]+)\s+(\d+)\s+(\d+)\.(\d+)\.(\d+)\s+(\d+):(\d+):(\d+)\.(\d+)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
+  const regex: RegExp = /^([^ ]+)\s+(\d+)\s+(\d+)\.(\d+)\.(\d+)\s+(\d+):(\d+):(\d+)\.(\d+)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
   return Array.from(fileContent.matchAll(regex)).map(match => ({
     profile: match[1],
     shotNr: parseInt(match[2]),
