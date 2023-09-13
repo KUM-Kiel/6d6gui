@@ -1,0 +1,27 @@
+{
+  "name": "6d6gui",
+  "version": "0.9.0",
+  "description": "A GUI for the use of the 6d6-compat",
+  "main": "./dist/main.js",
+  "scripts": {
+    "test": "lol",
+    "comment": "react build to app/frontend && copy to app && electron app",
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
+  },
+  "author": "Roman Sabaev",
+  "license": "ISC",
+  "devDependencies": {
+    "@electron-forge/cli": "^6.4.1",
+    "@electron-forge/maker-deb": "^6.4.1",
+    "@electron-forge/maker-rpm": "^6.4.1",
+    "@electron-forge/maker-squirrel": "^6.4.1",
+    "@electron-forge/maker-zip": "^6.4.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^6.4.1",
+    "electron": "^26.1.0"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0"
+  }
+}

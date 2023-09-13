@@ -1,0 +1,19 @@
+# JS Stuff
+node_modules/
+build/
+dist/
+
+# Seismic Data
+*.6d6
+*.send
+*.dat
+out/
+SegyFiles/
+
+# OS Files
+.DS_Store
+._*
+*~
+~*
+Thumbs.db
+desktop.ini
