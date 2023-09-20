@@ -1,4 +1,5 @@
 import { InfoJson } from "./kum-6d6"
+import Tai from './tai'
 
 const fs = require('fs')
 const util = require('util')
@@ -22,9 +23,16 @@ export interface Device {
   info: InfoJson
 }
 
+// Additoinal checkups needed?
+
 const validateInfo = (info: any): InfoJson => {
-  // TODO
   if (typeof info !== 'object' || !info) throw new Error('Invalid InfoJson')
+  if (info.start_time.valueOf() > info.end_time.valueOf()) throw new Error('Invalid InfoJson - start_time is greater than end_time.')
+  if (info.startAddressData < 0 || !info.startAddressData) throw new Error('Invalid InfoJson - startAddressData invalid.')
+  if (info.endAddressData < 0 || !info.endAddressData) throw new Error('Invalid InfoJson - endAddressData invalid.')
+  if (info.sampleRate < 0 || !info.sampleRate) throw new Error('Invalid InfoJson - sampleRate invalid.')
+  if (typeof info.recorder_id !== 'string' || !info.recorder_id) throw new Error('Invalid InfoJson - recorder_id invalid.')
+
   return info
 }
 

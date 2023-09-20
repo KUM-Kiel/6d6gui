@@ -1,6 +1,7 @@
 import {Kum6d6Header, Channel} from './6d6-header'
 import TaiDate from './tai'
 
+///
 export interface ClockError {
   time: TaiDate,
   deviation: number

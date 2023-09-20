@@ -76,12 +76,12 @@ interface SegyTraceHeader {
   waterColHeightSrcLocation?: number,
   waterColHeightReceiverLocation?: number,
   scalarElevationsDepthsSpec?: number,
-  scalarCoordinatesSpecified?: number,
-  srcCorrdinateX?: number,
-  srcCoordinateY?: number,
+  scalarCoordinatesSpecified: number,
+  srcCoordinateX: number,
+  srcCoordinateY: number,
   groupCoordinateX?: number,
   groupCoordinateY?: number,
-  coordinatesUnits?: 'length' | 'seconds-of-arc' | 'decimal-degrees' | 'degrees-minutes-seconds'
+  coordinatesUnits: 'length' | 'seconds-of-arc' | 'decimal-degrees' | 'degrees-minutes-seconds'
   wheatheringVelocity?: number,
   subwheatheringVelocity?: number,
   upholeTimeSrcInMs?: number,
@@ -94,8 +94,8 @@ interface SegyTraceHeader {
   delayRecordingTime?: number,
   muteTimeStartMs?: number,
   muteTimeEndMs?: number,
-  numSamplesInThisTrace?: number,
-  sampleIntervalForTrace?: number,
+  numSamplesInThisTrace: number,
+  sampleIntervalForTrace: number,
   gainTypeFieldInstruments?: 'fixed' | 'binary' | 'floating-point' | 'other',
   instrumentGainContantDb?: number,
   instrumentEarlyInitGainDb?: number,
@@ -115,12 +115,12 @@ interface SegyTraceHeader {
   highCutFreq?: number,
   lowCutSlope?: number,
   highCutSlope?: number,
-  yearDataRecorded?: number,
-  dayOfYear?: number,
-  hourOfDay?: number,
-  minuteOfHour?: number,
-  secondOfMinute?: number,
-  timeBasisCode?: 'local' | 'gmt' | 'other' | 'utc' | 'gps',
+  yearDataRecorded: number,
+  dayOfYear: number,
+  hourOfDay: number,
+  minuteOfHour: number,
+  secondOfMinute: number,
+  timeBasisCode: 'local' | 'gmt' | 'other' | 'utc' | 'gps',
   traceWeightingFactor?: number,
   geophoneGroupNumRollSwitchOne?:  number,
   geophoneGroupNumtraceNumOne?: number,
@@ -131,7 +131,7 @@ interface SegyTraceHeader {
   yCoordinateEnsemble?: number,
   inLineNumberPoststackData?: number,
   crossLineNumberPoststackData?: number,
-  shotpointNumber?: number,
+  shotpointNumber: number,
   scalarForShotpointNumber?: number,
   traceValueMeasurementUnit?: 'other' | 'unknown' | 'pascal' | 'volts' | 'millivolts' | 'amperes' | 'meters' | 'm/s' | 'm/s2' | 'newton' | 'watt',
   transductionConstant?: number,
@@ -150,10 +150,11 @@ interface SegyTraceHeader {
 
 export class SegyWriter  {
   fd: number | null
-  traceCounter: number = 0
   buffer: Uint8Array
   bufferPosition: number
   //pointer: number = 0
+
+  // Ab hier wird rumprobiert
 
   constructor(fd: number) {
     this.fd = fd
@@ -266,7 +267,7 @@ export class SegyWriter  {
   }
 
   createTraceHeader(fields: SegyTraceHeader) {
-    let bytes: Uint8Array = new Uint8Array(400)
+    let bytes: Uint8Array = new Uint8Array(240)
     let segyHeader: DataView = new DataView(bytes.buffer)
 
     segyHeader.setInt32(0, fields.traceSequenceNumWithinLine)
@@ -277,8 +278,9 @@ export class SegyWriter  {
     segyHeader.setInt32(20, fields.ensembleNumber || 0)
     segyHeader.setInt32(24, fields.traceNumWithinEnsemble || 0)
     segyHeader.setInt16(28, fields.traceIdentificationCode || 0)
-    segyHeader.setInt16(30, fields.numVerticalSummedTraces || 0)
-    segyHeader.setInt16(32, fields.numHorizontalStackedTraces || 0)
+    // change default 0 to 1 for vert. & horz. :
+    segyHeader.setInt16(30, fields.numVerticalSummedTraces || 1)
+    segyHeader.setInt16(32, fields.numHorizontalStackedTraces || 1)
     segyHeader.setInt16(34, {
       'production': 1,
       'test' : 2
@@ -293,7 +295,7 @@ export class SegyWriter  {
     segyHeader.setInt32(64, fields.waterColHeightReceiverLocation || 0)
     segyHeader.setInt16(68, fields.scalarElevationsDepthsSpec || 0)
     segyHeader.setInt16(70, fields.scalarCoordinatesSpecified || 0)
-    segyHeader.setInt32(72, fields.srcCorrdinateX || 0)
+    segyHeader.setInt32(72, fields.srcCoordinateX || 0)
     segyHeader.setInt32(76, fields.srcCoordinateY || 0)
     segyHeader.setInt32(80, fields.groupCoordinateX || 0)
     segyHeader.setInt32(84, fields.groupCoordinateY || 0)
@@ -452,22 +454,19 @@ export class SegyWriter  {
   }
 
   async writeHeader(d6Header: Combined6d6Header, numberSamplesPerDataTrace: number): Promise<void> {
-    await this.write(this.createTextHeader(['ja moin.']))
-    await this.write(this.createBinaryHeader({
+    await this.write(this.createTextHeader(['ja moin']))
+    await this.write(this.createBinaryHeader({ //???
       numberSamplesPerDataTrace,
       sampleIntervalUs: Math.round(1000000 / d6Header.sampleRate),
+      sampleIntervalOrigRecordingUs: Math.round(1000000 / d6Header.sampleRate),
+      numberSamplesPerDataTraceOrig: numberSamplesPerDataTrace,
       dataSampleFormatCode: '4-byte-twos-complement',
       // ...
     }))
   }
 
-  async writeTraceHeader(numSamplesInThisTrace: number): Promise<void> {
-    let traceHeader = this.createTraceHeader({
-      traceSequenceNumWithinLine: this.traceCounter,
-      traceSequenceNumWithinFile: this.traceCounter,
-      numSamplesInThisTrace
-    })
-    this.traceCounter++
+  async writeTraceHeader(fields: SegyTraceHeader): Promise<void> {
+    let traceHeader = this.createTraceHeader(fields)
     await this.write(traceHeader)
   }
 

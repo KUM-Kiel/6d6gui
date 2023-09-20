@@ -1,4 +1,3 @@
- const { waitFor } = require('@testing-library/react')
 const path = require('path')
 
 import Process from './process'
@@ -106,8 +105,7 @@ class TaskManager {
       () => {
         this.tasks[id].finished = true
         this.tasks[id].actions = ['confirm']
-        waitFor(200)
-        this.update()
+        setTimeout(()=>{this.update()}, 200)
       }
     )
     // Pipes the output of the process into a task object.

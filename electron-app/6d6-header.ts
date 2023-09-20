@@ -1,10 +1,12 @@
 import TaiDate from './tai'
 
+/// Interface for Channel typing
 export interface Channel {
   name: string,
   gain: number,
 }
 
+/// Interface for the signature of a .6d6 Header
 export interface Kum6d6Header {
   version: 1 | 2,
   time: TaiDate,
@@ -24,11 +26,11 @@ export interface Kum6d6Header {
   comment: string,
 }
 
-export const malformedMessage = 'Malformed 6D6 Header'
+export const malformedMessage = 'Malformed 6D6 Header.'
 
-// Helper Functions
+/// Helper Functions
 
-// Byte-number to int-number with validation.
+/// Byte-number to int-number converison with validation.
 const bcdToInt = (b: number) => {
   let ones = (b & 15)
   let tens = ((b >> 4) & 15)
@@ -39,13 +41,14 @@ const bcdToInt = (b: number) => {
   return (ones + tens * 10)
 }
 
-// Check for the offset to not exceed the value 512.
+/// Check the offset to not exceed the value 512.
 export const limit512 = (x: number) => {
   if (x > 512) throw new Error(malformedMessage)
   return x
 }
 
-// Reads a String of values until a 'zero' is found and returns the read string plus the accumulated offset.
+/// Reads a String of values until a 'zero' is found and
+/// returns the read string plus the accumulated offset.
 const readStringZero = (block: DataView, o: number): [string, number] => {
   let a: number[] = []
   while (block.getUint8(o) !== 0) {
@@ -59,8 +62,9 @@ const readStringZero = (block: DataView, o: number): [string, number] => {
   return [new TextDecoder().decode(new Uint8Array(a)), o]
 }
 
-// Checks for a block at a given offset whether a string matches the read value.
-// Returns an increased offset.
+/// Checks for a block at a given offset whether a string
+/// matches the read value.
+/// Returns an increased offset.
 export const memoryCompare = (block: DataView, o: number, value: string): number => {
   if (!str(block, o, value)) {
     throw new Error(malformedMessage)
@@ -69,7 +73,7 @@ export const memoryCompare = (block: DataView, o: number, value: string): number
   return o
 }
 
-// Checks whether a block at a given offset matches a string.
+/// Checks whether a block at a given offset matches a string.
 export const str = (block: DataView, offset: number, value: string): boolean => {
   for (let i = 0; i < value.length; ++i) {
     if (block.getUint8(offset + i) !== value.charCodeAt(i)) return false
@@ -77,7 +81,7 @@ export const str = (block: DataView, offset: number, value: string): boolean => 
   return true
 }
 
-// Reads the value for a bcd-time an converts it properly.
+/// Reads the value for a bcd-time an converts it properly.
 export const readBcdTime = (block: DataView, offset: number): TaiDate | null => {
   try {
     let hour = bcdToInt(block.getUint8(offset))
@@ -97,7 +101,7 @@ export const readBcdTime = (block: DataView, offset: number): TaiDate | null => 
   }
 }
 
-// Reads and returns an entire .6d6 header.
+/// Reads and returns an entire .6d6 header.
 export const kum6D6HeaderRead = (block: DataView): Kum6d6Header => {
   if (block.byteLength < 512) {
     throw new Error('Block too short.')

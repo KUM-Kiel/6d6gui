@@ -21,39 +21,46 @@ const getField = (fields: string[], name: string) => {
   return n
 }
 
-export const parseShotFile = (fileContent: string): Shot[] => {
+export const parseShotFile = (fileContent: string): Shot[] | null => {
+  return parseShotFileDat(fileContent) || parseShotFileSend(fileContent)
+}
+
+export const parseShotFileDat = (fileContent: string): Shot[] | null => {
   const lines: string[] = fileContent.split(/\r?\n/g).filter(v => v)
   const names: string[] = lines[0].split(/[ \t]+/g)
-  const nameIndices: {profile: number, shotNr: number, julday: number, y: number, h: number, m: number, s: number, ms: number, lat: number, lon: number, depth: number } = {
-    profile: names.indexOf('profile'),
-    shotNr: getField(names, 'shotNr'),
-    julday: getField(names, 'julday'),
-    y: getField(names, 'y'),
-    h: getField(names, 'h'),
-    m: getField(names, 'm'),
-    s: getField(names, 's'),
-    ms: getField(names, 'ms'),
-    lat: getField(names, 'lat'),
-    lon: getField(names, 'lon'),
-    depth: getField(names, 'depth')
-  }
+
+  const profileIndex = names.indexOf('profile')
+  const shotNrIndex = names.indexOf('shotNr')
+  const juldayIndex = names.indexOf('julday')
+  const yIndex = names.indexOf('y')
+  const hIndex = names.indexOf('h')
+  const mIndex = names.indexOf('m')
+  const sIndex = names.indexOf('s')
+  const msIndex = names.indexOf('ms')
+  const latIndex = names.indexOf('lat')
+  const lonIndex = names.indexOf('lon')
+  const depthIndex = names.indexOf('depth')
+
+  if (shotNrIndex < 0 || juldayIndex < 0 || yIndex < 0 || hIndex < 0 || mIndex < 0 || sIndex < 0 || msIndex < 0 || latIndex < 0 || lonIndex < 0 || depthIndex < 0 ) return null
+
   const shots: Shot[] = []
   for (let i = 1; i < lines.length; ++i) {
     const fields = lines[i].split(/[ \t]+/g)
     if (fields.length !== names.length) {
       console.log({names,fields})
-      throw new Error('Wrong column count')}
-    const profile = nameIndices.profile >= 0 ? fields[nameIndices.profile] : ''
-    const shotNr = parseInt(fields[nameIndices.shotNr], 10)
-    const julday = parseInt(fields[nameIndices.julday], 10)
-    const y = parseInt(fields[nameIndices.y], 10)
-    const h = parseInt(fields[nameIndices.h], 10)
-    const m = parseInt(fields[nameIndices.m], 10)
-    const s = parseInt(fields[nameIndices.s], 10)
-    const ms = parseFloat(fields[nameIndices.ms])
-    const lat = parseFloat(fields[nameIndices.lat])
-    const lon = parseFloat(fields[nameIndices.lon])
-    const depth = parseFloat(fields[nameIndices.depth])
+      return null
+    }
+    const profile = profileIndex >= 0 ? fields[profileIndex] : ''
+    const shotNr = parseInt(fields[shotNrIndex], 10)
+    const julday = parseInt(fields[juldayIndex], 10)
+    const y = parseInt(fields[yIndex], 10)
+    const h = parseInt(fields[hIndex], 10)
+    const m = parseInt(fields[mIndex], 10)
+    const s = parseInt(fields[sIndex], 10)
+    const ms = parseFloat(fields[msIndex])
+    const lat = parseFloat(fields[latIndex])
+    const lon = parseFloat(fields[lonIndex])
+    const depth = parseFloat(fields[depthIndex])
     const time = new TaiDate(y, 1, julday, h, m, s, ms * 1000)
 
     shots.push({
@@ -64,27 +71,29 @@ export const parseShotFile = (fileContent: string): Shot[] => {
 }
 
 export const parseShotFileSend = (fileContent: string): Shot[] => {
-  const regex: RegExp = /^([^ ]+)\s+(\d+)\s+(\d+)\.(\d+)\.(\d+)\s+(\d+):(\d+):(\d+)\.(\d+)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
-  return Array.from(fileContent.matchAll(regex)).map(match => ({
-    profile: match[1],
-    shotNr: parseInt(match[2]),
-    lat: parseFloat(match[10]),
-    lon: parseFloat(match[11]),
-    depth: 0,
-    time: new TaiDate(parseInt(match[3]), parseInt(match[4]), parseInt(match[5]), parseInt(match[6]), parseInt(match[7]), parseInt(match[8]), Math.round(1e6 * parseFloat('0.' + match[9])))
-  }))
+  const regex: RegExp = /^([^ ]+)\s+(\d+)\s+(\d+)\.(\d+)\.(\d+)\s+(\d+):(\d+):(\d+(\.\d+)?)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
+  return Array.from(fileContent.matchAll(regex)).map(match => {
+    let s = parseFloat(match[8])
+    return {
+      profile: match[1],
+      shotNr: parseInt(match[2]),
+      lat: parseFloat(match[10]),
+      lon: parseFloat(match[11]),
+      depth: 0,
+      time: new TaiDate(parseInt(match[3]), parseInt(match[4]), parseInt(match[5]), parseInt(match[6]), parseInt(match[7]), Math.floor(s), Math.floor(1e6 * (s - Math.floor(s))))
+    }
+  })
 }
 
 export const readShotFile = async (fileName: string): Promise<Shot[]> => {
-  return parseShotFile(await readFile(fileName, 'utf-8'))
+  let parsedFile = parseShotFile(await readFile(fileName, 'utf-8'))
+  if (parsedFile === null) throw new Error(`Can't parse the given file.`)
+  return parsedFile
 }
 
-export const readShotFileSend = async (fileName: string): Promise<Shot[]> => {
-  return parseShotFileSend(await readFile(fileName, 'utf-8'))
-}
 
 const test = async () => {
-  console.log((await readShotFileSend('../BGR18-2R2.send')).map(s => ({...s, date: s.time.toISOString()})))
+  console.log((await readShotFile('../BGR18-2R2.send')).map(s => ({...s, date: s.time.toISOString()})))
 }
 if (require.main === module) {
   test().catch(e => {
