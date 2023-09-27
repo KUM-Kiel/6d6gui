@@ -1,19 +1,19 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
-const child_process = require('child_process')
-const path = require('path')
-const util = require('util')
-const fs = require('fs')
-const execFile = util.promisify(child_process.execFile)
+import path from 'path'
+import fs from 'fs'
+import util from 'util'
+import { execFile } from 'child_process'
+const execFileAsync = util.promisify(execFile)
 
-import TaskManager, {Action} from './spawnProcess'
+import TaskManager, { Action } from './spawnProcess'
 import Watcher, { Device } from './6d6watcher'
-import Kum6D6, {InfoJson} from './kum-6d6'
+import Kum6D6, { InfoJson } from './kum-6d6'
 import { stat } from 'fs/promises'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 
 let mainWindow: any
 
 // Creating an electron window with specified options.
-function createWindow () {
+function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1300,
     height: 1000,
@@ -25,9 +25,9 @@ function createWindow () {
   })
 
   //old: mainWindow.loadURL(startURL)
-  if(app.isPackaged) {
+  if (app.isPackaged) {
     mainWindow.loadFile('index.html'); // prod
-  }else{
+  } else {
     mainWindow.loadURL('http://localhost:3000'); // dev
   }
 
@@ -39,7 +39,7 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
-  mainWindow.on('reload', () => {})
+  mainWindow.on('reload', () => { })
 }
 
 //app.on('ready', createWindow)
@@ -91,19 +91,74 @@ const checkForFileExistence = async (path: string): Promise<boolean> => {
   }
 }
 
+/* const fileChoiceDialog = async (options: any): Promise<> => {
+  return dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [
+      options
+    ]
+  })
+} */
+
+ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
+  let window = BrowserWindow.fromWebContents(event.sender)
+  if (window === null) return null
+  let result = await dialog.showOpenDialog(window, {
+    properties: [directory ? 'openDirectory' : 'openFile'],
+    filters: [
+      {
+        name, extensions
+      }
+    ]
+  })
+  if (result.canceled) return null
+  return result.filePaths
+})
+
+ipcMain.handle('6d6info', async (event, path) => {
+  if (process.platform === 'win32') {
+    let r = await Kum6D6.open(path)
+    console.log(r.header)
+    if (r === null) return null
+    return r.infoJson()
+  } else {
+    const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
+    const r = await execFileAsync(command, ['--json', path])
+
+    return JSON.parse(r.stdout)
+  }
+})
+
+// Den ganzen Spaß nach App.js schicken lassen und dann nach unten propagieren
+// + vorhandene Properties in einem sinnvollen Objekt zusammenfassen und dadurch struktur schaffen.
+
 // Opens up a system-dialogue to pick either a file or a directory.
-const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target'): Promise<any> => {
+/* const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target' | 'shotfile'): Promise<void> => {
   // Open file dialogue.
-  if (isFile) {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openFile'],
-      filters: [
-        {
-          name: '6d6 file',
-          extensions: ['6d6']
-        }
-      ]
-    })
+  let result: Electron.OpenDialogReturnValue
+
+   if (isFile) {
+    if (type === 'shotfile') {
+      result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+          {
+            name: 'Shotfile',
+            extensions: ['send', 'dat']
+          }
+        ]
+      })
+    } else {
+      result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+          {
+            name: '6d6 file',
+            extensions: ['6d6']
+          }
+        ]
+      })
+    }
     // If canceled or empty throw error.
     if (result.canceled || result.filePaths.length === 0) {
       return {
@@ -113,13 +168,14 @@ const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target
       }
       // Successfully picked a file.
     } else {
+      let p = path.parse(result.filePaths[0])
       return {
         setup: 'directory-choice',
         error: false,
-        filename: path.parse(result.filePaths[0]).base,
-        dirPath: path.parse(result.filePaths[0]).dir,
+        filename: p.base,
+        dirPath: p.dir,
         file: true,
-        info: null
+        info: 'mseed'
       }
     }
     // Open a folder/directory dialogue.
@@ -156,15 +212,15 @@ const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target
     }
   }
 }
-
+ */
 interface IpcEvent {
   reply: (name: string, data: any) => void
 }
 
 // Handling the UI request to open up a file/path picking dialogue.
-ipcMain.on('setup', async (event: IpcEvent, data: any) => {
+/* ipcMain.on('setup', async (event: IpcEvent, data: any) => {
   try {
-    let fileObject: {setup: string, error: Error, filename: string, dirPath: string, file: boolean, info: string | InfoJson, type: string } = await directoryChoiceDialogue(data.isFile, data.type)
+    let fileObject: { setup: string, error: Error, filename: string, dirPath: string, file: boolean, info: string | InfoJson, type: string } = await directoryChoiceDialogue(data.isFile, data.type)
     if (!fileObject.error) {
       try {
         if (process.platform === 'win32') {
@@ -194,6 +250,8 @@ ipcMain.on('setup', async (event: IpcEvent, data: any) => {
     event.reply('setup', { error: e })
   }
 })
+ */
+
 
 // Sets up the TaskManager to broadcast avaiable tasks.
 const taskManager = new TaskManager(tasks => {
@@ -264,6 +322,7 @@ export interface MSeedData {
   endDate: string,      // ??
   endTime: string,      // ??
   timeChoice: string    // ??
+
 }
 
 // Handling the UI request for a 6d6MSeed command.

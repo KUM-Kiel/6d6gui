@@ -1,5 +1,5 @@
 import Kum6D6 from './kum-6d6'
-import { readShotFile, readShotFileSend, Shot } from './shot-file-parser'
+import { readShotFile, Shot } from './shot-file-parser'
 import { limit512, str, memoryCompare, readBcdTime, kum6D6HeaderRead, malformedMessage } from './6d6-header'
 import { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
 import TaiDate from './tai'
@@ -8,10 +8,11 @@ import { SegyWriter } from './segy-writer'
 import path from 'path'
 import fs from 'fs/promises'
 
+// For testing purposes.
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
 
 // generate seg-y files
-const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, fileNameSegy: string) => {
+const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string) => {
   const file = await Kum6D6.open(location6d6)
   // tracelength: time * sampleRate, settable by user
   // tracelength "30" shall be set dynamically by the user in the future.
@@ -22,7 +23,7 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
   /*   const destFile = fswrite(locationTarget, ' ', 0) // ??? */
   await fs.mkdir('SegyFiles', { recursive: true })
   for (let i = 0; i < channels.length; ++i) {
-    segyFiles[i] = await SegyWriter.create(path.join('SegyFiles', fileNameSegy + '-' + channels[i].name + '.segy'))
+    segyFiles[i] = await SegyWriter.create(path.join(locationTarget, filenameSegy + '-' + channels[i].name + '.segy'))
     await segyFiles[i].writeHeader(file.header, traceLength)
   }
   //console.log('metaDataStart: ', file.fileMetaDataStart)
@@ -47,6 +48,7 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
         traceSequenceNumWithinLine: i + 1,
         sampleIntervalForTrace: Math.round(1e6 / file.header.sampleRate),
         scalarCoordinatesSpecified: -100,
+        // Conversion of 'decimal degrees' to 'seconds of arc'
         srcCoordinateX: Math.round(shot.lon * 60 * 60 * 100),
         srcCoordinateY: Math.round(shot.lat * 60 * 60 * 100),
         coordinatesUnits: 'seconds-of-arc',
@@ -59,10 +61,7 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
         shotpointNumber: shot.shotNr,
       })
     }
-   //  console.log({seek:await file.seek(shot.time)})
-    // write trace headers
     let sampleFrames = 0
-   // console.log({write:i})
     while (sampleFrames < traceLength) {
       if (!await file.read({
         onSamples: async samples => {
@@ -91,7 +90,8 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
           console.log('Rebootet at: ' + t + ' with: ' + v + 'V')
         }
       })) throw new Error('File too short')
-      // write fake samples
+
+      // write fake samples for testing
       /*sampleFrames += 1
        for (let i = 0; i < segyFiles.length; ++i) {
         await segyFiles[i].writeSample(Math.round(1e6 * rnd()))
@@ -106,7 +106,11 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
 
 
 const createSegyFile = async (segyData: number, destinationTarget: string): Promise<void> => {
+}
 
+export const createSegyFiles = async (location6d6: string, locationShotfile: string, locationTarget: string, filenameSegy: string ) => {
+
+  await kum6D6ToSegy(location6d6, locationTarget, locationShotfile, filenameSegy)
 }
 
 async function test() {

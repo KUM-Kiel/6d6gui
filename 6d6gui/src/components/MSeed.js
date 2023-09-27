@@ -147,7 +147,7 @@ const MSeed = ({
       <button
         className='btn medium'
         onClick={() => {
-          choosePath(true)
+          choosePath(true, 'source')
         }}
       >
         Choose File

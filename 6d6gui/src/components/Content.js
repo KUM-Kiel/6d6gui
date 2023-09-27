@@ -9,9 +9,11 @@ const Content = ({
   choosePath,
   destPath,
   srcFile,
+  actions,
   fileChoice,
   setFilename,
   filename,
+  shotfile,
   trSubmitCom,
   channelNr,
   deviceInfo,
@@ -51,7 +53,13 @@ const Content = ({
   } else if (contentId === 2) {
     contentShown = (
       <Segy
-        fickSchnitzel={deviceInfo} />
+        fickSchnitzel={deviceInfo}
+        choosePath={choosePath}
+        startProcessing={startProcessing}
+        destPath={destPath}
+        actions={actions}
+        shotfile={shotfile}
+        srcFile={srcFile} />
     )
   } else {
     contentShown = (
