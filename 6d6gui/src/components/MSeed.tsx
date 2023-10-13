@@ -1,40 +1,117 @@
-import { useState } from 'react'
+import { Combined6d6Header } from '../../../electron-app/6d6-header-validation'
+import useValidatedState, { alphaNumericCheck } from '../validation'
+import { d6InfoStructure } from '../../../electron-app/main'
+import React, { useState } from 'react'
 import TextInput from './TextInput'
-import { useValidatedState, alphaNumericCheck } from '../validation'
+import { Actions } from '../App'
+import TaiDate from '../../../electron-app/tai'
+
+type MSeedProps = {
+  actions: Actions,
+  destPath: string,
+  d6Info: d6InfoStructure | null,
+  startProcessing: Function,
+  setHighlightTime: Function,
+}
+const standardTemplate = 'out/%S/%y-%m-%d-%C'
+
+const pad = (n: number) => (n < 10 ? '0' : '') + n
+
+// Validation for cut input.
+const cutCheck = (maxChar: number) => {
+  const regExp = new RegExp(`^[0-9]{` + 3 + ',' + maxChar + `}$`)
+  return (input: any) => regExp.test(input) && input >= 300
+}
+
+// Validation for channels input.
+const validateChannelsInput = (channelNr: number) => {
+  const channelRegExp = '[A-Za-z0-9]{1,3}'
+  const regExp = new RegExp(
+    '^(' + channelRegExp + ',){' + (channelNr - 1) + '}' + channelRegExp + '$'
+  )
+  return (input: string) => input === '' || regExp.test(input)
+}
+
+const extractDateForInput = (header: Combined6d6Header | null, version: string, time: boolean): string => {
+  if (header === null) {
+    return new Date()
+  } else {
+    let temp
+    if (version === 'start') {
+      temp = new Date(header.startTime.toISOString())
+    } else {
+      temp = new Date(header.endTime.toISOString())
+    }
+    if (time) {
+      return pad(temp.getUTCHours()) + ':' + pad(temp.getUTCMinutes()) + ':' + pad(temp.getUTCSeconds())
+    } else {
+      return (
+        temp.getUTCFullYear() +
+        '-' +
+        pad(temp.getUTCMonth() + 1) +
+        '-' +
+        pad(temp.getUTCDate())
+      )
+    }
+  }
+}
+
+const dropDownOptions = [
+  { value: 'none', label: 'No time constraint' },
+  { value: 'both', label: 'Start & End' },
+  { value: 'start', label: 'Start' },
+  { value: 'end', label: 'End' }
+]
+
+const outputTemplateList = [
+  { id: 0, name: 'Year - %y', value: '%y' },
+  { id: 1, name: 'Month - %m', value: '%m' },
+  { id: 2, name: 'Day - %d', value: '%d' },
+  { id: 3, name: 'Hour - %h', value: '%h' },
+  { id: 4, name: 'Minute - %i', value: '%i' },
+  { id: 5, name: 'Second - %s', value: '%s' },
+  { id: 6, name: 'Station-Code - %S', value: '%S' },
+  { id: 7, name: 'Location-Code - %L', value: '%L' },
+  { id: 8, name: 'Channel - %C', value: '%C' },
+  { id: 9, name: 'Network-Code - %N', value: '%N' },
+  { id: 10, name: 'Julian Day - %j', value: '%j' },
+]
+
+const d6InfoInit = {
+  info:
+  {
+    version: 1,
+    startTime: new TaiDate(0),
+    endTime: new TaiDate(0),
+    sync: { time: new TaiDate(0), deviation: 0 },        // first sync
+    skew: null, // second sync
+    startAddressData: 0,
+    endAddressData: 0,
+    sampleRate: 0,
+    writtenSamples: 0,
+    lostSamples: 0,
+    bitDepth: 0,
+    recorderID: 0,
+    rtcID: '',
+    positionOne: { latitude: '', longitude: '' },
+    positionTwo: { latitude: '', longitude: '' },
+    channels: [{ name: '', gain: 0 }],
+    comment: ''
+  }, channelNr: 0, srcFile: '', srcFileBase: '', srcFileDir: ''
+}
 
 // Main Content for the use of 6D6MSeed.
 const MSeed = ({
-  choosePath,
-  srcFile,
-  startProcessing,
-  channelNr,
+  actions,
   destPath,
-  deviceInfo,
+  d6Info = d6InfoInit,
+  startProcessing,
   setHighlightTime
-}) => {
-  const standardTemplate = 'out/%S/%y-%m-%d-%C'
-
-  const pad = n => (n < 10 ? '0' : '') + n
-
-  // Validation for cut input.
-  const cutCheck = maxChar => {
-    const regExp = new RegExp(`^[0-9]{` + 3 + ',' + maxChar + `}$`)
-    return input => regExp.test(input) && input >= 300
-  }
-
-  // Validation for channels input.
-  const validateChannelsInput = channelNr => {
-    const channelRegExp = '[A-Za-z0-9]{1,3}'
-    const regExp = new RegExp(
-      '^(' + channelRegExp + ',){' + (channelNr - 1) + '}' + channelRegExp + '$'
-    )
-    return input => input === '' || regExp.test(input)
-  }
-
-  const [noDate, setNoDate] = useState(false)
-  const [noCut, setNoCut] = useState(false)
-  const [resample, setResample] = useState(false)
-  const [ignoreSkew, setIgnoreSkew] = useState(false)
+}: MSeedProps) => {
+  const [noDate, setNoDate] = useState<boolean>(false)
+  const [noCut, setNoCut] = useState<boolean>(false)
+  const [resample, setResample] = useState<boolean>(false)
+  const [ignoreSkew, setIgnoreSkew] = useState<boolean>(false)
   const [timeChoice, setTimeChoice] = useState('none')
   const [cut, setCut] = useValidatedState(86400, cutCheck(7))
   const [station, setStation] = useValidatedState('', alphaNumericCheck(1, 5))
@@ -46,7 +123,7 @@ const MSeed = ({
   const [endTime, setEndTime] = useState('')
   const [channels, setChannels] = useValidatedState(
     '',
-    validateChannelsInput(channelNr)
+    validateChannelsInput(d6Info.channelNr)
   )
   const [outputTemplate, setOutputTemplate] = useState({
     value: standardTemplate,
@@ -59,7 +136,7 @@ const MSeed = ({
     document.getElementById('output-template').focus()
   }
 
-  const setOutputTemplatePlusCheck = value => {
+  const setOutputTemplatePlusCheck = (value: string) => {
     let tempBool = /%S/g.test(value)
     setOutputTemplate({ value: value, valid: tempBool })
   }
@@ -71,20 +148,13 @@ const MSeed = ({
     setChannels('')
   }
 
-  const dropDownOptions = [
-    { value: 'none', label: 'No time constraint' },
-    { value: 'both', label: 'Start & End' },
-    { value: 'start', label: 'Start' },
-    { value: 'end', label: 'End' }
-  ]
-
-  const handleDropdownChange = e => {
+  const handleDropdownChange = (e: Event) => {
     setTimeChoice(e.target.value)
     setHighlightTime(e.target.value)
   }
 
   // Triggers according setter function of a useState.
-  const handleCheckboxChange = choice => {
+  const handleCheckboxChange = (choice: number) => {
     if (choice === 1) {
       setResample(!resample)
     } else if (choice === 2) {
@@ -96,77 +166,34 @@ const MSeed = ({
     }
   }
 
-  const extractDateForInput = (date, version, time) => {
-    if (date === null) {
-      return new Date()
-    } else {
-      let temp
-      if (version === 'start') {
-        temp = new Date(date.start_time)
-      } else {
-        temp = new Date(date.end_time)
-      }
-      if (time) {
-        return pad(temp.getUTCHours()) + ':' + pad(temp.getUTCMinutes()) + ':' + pad(temp.getUTCSeconds())
-      } else {
-        return (
-          temp.getUTCFullYear() +
-          '-' +
-          pad(temp.getUTCMonth() + 1) +
-          '-' +
-          pad(temp.getUTCDate())
-        )
-      }
-    }
-  }
+  const minDate = extractDateForInput(d6Info.info, 'start', false)
+  const maxDate = extractDateForInput(d6Info.info, 'end', false)
 
-  const minDate = extractDateForInput(deviceInfo, 'start', false)
-  const maxDate = extractDateForInput(deviceInfo, 'end', false)
-
-  const minTime = extractDateForInput(deviceInfo, 'start', true)
-  const maxTime = extractDateForInput(deviceInfo, 'end', true)
-
-
-  const outputTemplateList = [
-    { id: 0, name: 'Year - %y', value: '%y' },
-    { id: 1, name: 'Month - %m', value: '%m' },
-    { id: 2, name: 'Day - %d', value: '%d' },
-    { id: 3, name: 'Hour - %h', value: '%h' },
-    { id: 4, name: 'Minute - %i', value: '%i' },
-    { id: 5, name: 'Second - %s', value: '%s' },
-    { id: 6, name: 'Station-Code - %S', value: '%S' },
-    { id: 7, name: 'Location-Code - %L', value: '%L' },
-    { id: 8, name: 'Channel - %C', value: '%C' },
-    { id: 9, name: 'Network-Code - %N', value: '%N' },
-    { id: 10, name: 'Julian Day - %j', value: '%j' },
-  ]
+  const minTime = extractDateForInput(d6Info.info, 'start', true)
+  const maxTime = extractDateForInput(d6Info.info, 'end', true)
 
   return (
     <div className='mseed-main'>
       <p>This utility converts a 6D6 formatted file to a MiniSEED file.</p>
       <button
         className='btn medium'
-        onClick={() => {
-          choosePath(true, 'source')
-        }}
+        onClick={actions.choose6d6File}
       >
         Choose File
       </button>
-      {srcFile.path !== '' && (
+      {d6Info.srcFileDir !== '' && (
         <button
           className='btn medium'
-          onClick={() => {
-            choosePath(false, 'target')
-          }}
+          onClick={actions.chooseTargetLocation()}
         >
           Choose Output Location
         </button>
       )}
       <br />
-      <div className={`${srcFile.path === '' ? 'hidden' : 'shown'}`}>
+      <div className={`${d6Info.srcFileDir === '' ? 'hidden' : 'shown'}`}>
         <p>
           Set up to convert from
-          <span className='read-text-hightlight'> {srcFile.filename} </span>
+          <span className='read-text-hightlight'> {d6Info.srcFileBase} </span>
           to
         </p>
         <div className='input out-template-path'>
@@ -359,9 +386,9 @@ const MSeed = ({
         </div>
         <br />
         {timeChoice !== 'none' && (<div>
-        {timeChoice === 'both' && ((startDate + startTime) > (endDate + endTime) && (<p>The <b>end</b> time has to be after the <b>start</b> time</p>))}
-        {timeChoice === 'start' && ((minDate + minTime) > (startDate + startTime) && (<p>The start time has to be <b>after</b> the start of the recording.</p>))}
-        {timeChoice === 'end' && ((endDate + endTime) > (maxDate + maxTime) && (<p>The end time has to be <b>before</b> the end of the recording.</p>))}
+          {timeChoice === 'both' && ((startDate + startTime) > (endDate + endTime) && (<p>The <b>end</b> time has to be after the <b>start</b> time</p>))}
+          {timeChoice === 'start' && ((minDate + minTime) > (startDate + startTime) && (<p>The start time has to be <b>after</b> the start of the recording.</p>))}
+          {timeChoice === 'end' && ((endDate + endTime) > (maxDate + maxTime) && (<p>The end time has to be <b>before</b> the end of the recording.</p>))}
         </div>)}
         {station.valid &&
           location.valid &&
@@ -370,7 +397,7 @@ const MSeed = ({
           outputTemplate.valid &&
           (cut.valid || noCut) && (
             <button
-            type="submit"
+              type="submit"
               className='btn medium confirmation'
               onClick={() => {
                 startProcessing({

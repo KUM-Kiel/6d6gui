@@ -1,5 +1,15 @@
 // Showcase for the deviceList.
-const FileList = ({ dirList, changeFile, fileChoice, switchContent }) => {
+import React from "react"
+import { Device } from "../../../electron-app/6d6watcher"
+
+type FileListProps = {
+  dirList: Device[],
+  changeFile: Function,
+  fileChoice: string | null,
+  switchContent: Function
+}
+
+const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListProps) => {
   return (
     <div>
       {dirList.length !== 0 && (
@@ -8,7 +18,8 @@ const FileList = ({ dirList, changeFile, fileChoice, switchContent }) => {
             <div style={{ marginTop: '0.5em' }} key={key}>
               <label style={{ marginLeft: '0.25em' }} >
                 <input
-                  style={{ float: 'Left' }}
+                // was 'Left' at first, might not work due to case sensitivity
+                  style={{ float: 'left' }}
                   type='radio'
                   onChange={() => {
                     switchContent(2)

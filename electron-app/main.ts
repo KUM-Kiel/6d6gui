@@ -1,14 +1,20 @@
-import path from 'path'
-import fs from 'fs'
-import util from 'util'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { Combined6d6Header } from './6d6-header-validation'
+import Watcher, { Device } from './6d6watcher'
+import TaskManager from './spawnProcess'
 import { execFile } from 'child_process'
+import { stat } from 'fs/promises'
+import Kum6D6 from './kum-6d6'
+import path from 'path'
+import util from 'util'
+import fs from 'fs'
+
 const execFileAsync = util.promisify(execFile)
 
-import TaskManager, { Action } from './spawnProcess'
-import Watcher, { Device } from './6d6watcher'
-import Kum6D6, { InfoJson } from './kum-6d6'
-import { stat } from 'fs/promises'
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+export interface FileErrorData {
+  type: string,
+  message: string
+}
 
 let mainWindow: any
 
@@ -111,158 +117,54 @@ ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
       }
     ]
   })
-  if (result.canceled) return null
-  return result.filePaths
+  if (result.canceled || result.filePaths[0].length !== 1) return null
+  if (directory) {
+    return { path: result.filePaths[0] }
+  } else {
+    return { path: result.filePaths[0], srcFileDir: path.parse(result.filePaths[0]).dir, scrFileBase: path.parse(result.filePaths[0]).base }
+  }
 })
+
+export interface d6InfoStructure {
+  info: Combined6d6Header | null,
+  channelNr: number,
+  srcFile: string,
+  srcFileBase: string,
+  srcFileDir: string
+}
 
 ipcMain.handle('6d6info', async (event, path) => {
   if (process.platform === 'win32') {
     let r = await Kum6D6.open(path)
-    console.log(r.header)
+
     if (r === null) return null
-    return r.infoJson()
+
+    return {...r.infoJson(), srcFile: path }
   } else {
     const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
     const r = await execFileAsync(command, ['--json', path])
+    const result = JSON.parse(r.stdout)
 
-    return JSON.parse(r.stdout)
+    return { ...result, srcFile: path }
   }
 })
 
-// Den ganzen Spaß nach App.js schicken lassen und dann nach unten propagieren
-// + vorhandene Properties in einem sinnvollen Objekt zusammenfassen und dadurch struktur schaffen.
-
-// Opens up a system-dialogue to pick either a file or a directory.
-/* const directoryChoiceDialogue = async (isFile: boolean, type: 'source' | 'target' | 'shotfile'): Promise<void> => {
-  // Open file dialogue.
-  let result: Electron.OpenDialogReturnValue
-
-   if (isFile) {
-    if (type === 'shotfile') {
-      result = await dialog.showOpenDialog(mainWindow, {
-        properties: ['openFile'],
-        filters: [
-          {
-            name: 'Shotfile',
-            extensions: ['send', 'dat']
-          }
-        ]
-      })
-    } else {
-      result = await dialog.showOpenDialog(mainWindow, {
-        properties: ['openFile'],
-        filters: [
-          {
-            name: '6d6 file',
-            extensions: ['6d6']
-          }
-        ]
-      })
-    }
-    // If canceled or empty throw error.
-    if (result.canceled || result.filePaths.length === 0) {
-      return {
-        setup: 'directory-choice',
-        error: true,
-        errorMessage: new Error('No file chosen.')
-      }
-      // Successfully picked a file.
-    } else {
-      let p = path.parse(result.filePaths[0])
-      return {
-        setup: 'directory-choice',
-        error: false,
-        filename: p.base,
-        dirPath: p.dir,
-        file: true,
-        info: 'mseed'
-      }
-    }
-    // Open a folder/directory dialogue.
-  } else {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory']
-    })
-    // If canceled or empty throw error.
-    if (result.canceled || result.filePaths.length === 0) {
-      return {
-        setup: 'directory-choice',
-        error: true,
-        errorMessage: new Error('No directory chosen.')
-      }
-    } else {
-      // Split responses by usecase.
-      if (type === 'target') {
-        return {
-          setup: 'directory-choice',
-          error: false,
-          dirPath: result.filePaths[0],
-          file: false,
-          type: 'target'
-        }
-      } else {
-        return {
-          setup: 'directory-choice',
-          error: false,
-          dirPath: result.filePaths[0],
-          file: false,
-          type: 'source'
-        }
-      }
-    }
-  }
-}
- */
-interface IpcEvent {
-  reply: (name: string, data: any) => void
-}
-
-// Handling the UI request to open up a file/path picking dialogue.
-/* ipcMain.on('setup', async (event: IpcEvent, data: any) => {
-  try {
-    let fileObject: { setup: string, error: Error, filename: string, dirPath: string, file: boolean, info: string | InfoJson, type: string } = await directoryChoiceDialogue(data.isFile, data.type)
-    if (!fileObject.error) {
-      try {
-        if (process.platform === 'win32') {
-          let r = await Kum6D6.open(path.join(fileObject.dirPath, fileObject.filename))
-          console.log(r.header)
-          fileObject.info = r.infoJson()
-        } else {
-          const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
-          const r = await execFile(command, [
-            '--json',
-            path.join(fileObject.dirPath, fileObject.filename)
-          ])
-          fileObject.info = JSON.parse(r.stdout)
-        }
-        fileObject.setup = 'directory-choice'
-        fileObject.file = true
-      } catch (e) {
-        console.log('Choice dialogue error occurred: ', e)
-        fileObject.info = 'No 6d6info avaiable.'
-        fileObject.file = false
-        fileObject.type = data.type
-      }
-    }
-    console.log(fileObject)
-    event.reply('setup', fileObject)
-  } catch (e) {
-    event.reply('setup', { error: e })
-  }
+// Forwarding of a UI induced action on a task.
+ipcMain.handle('taskAction', async (event, id, action) => {
+  return taskManager.action(id, action)
 })
- */
-
 
 // Sets up the TaskManager to broadcast avaiable tasks.
 const taskManager = new TaskManager(tasks => {
   broadcast('tasks', tasks)
 })
 
-interface CopyData {
+export interface CopyData {
   source: string,
   targetFilename: string,
   destPath: string
 }
+
 
 // Handling the UI request for a 6d6Copy command.
 ipcMain.on('6d6copy', (event: any, data: CopyData) => {
@@ -282,17 +184,17 @@ ipcMain.on('6d6copy', (event: any, data: CopyData) => {
   }
 })
 
-interface ReadData {
+export interface ReadData {
   srcPath: string,
   srcFilename: string,
-  destPath: string,
+  targetDirectory: string,
   destFilename: string
 }
 
 // Handling the UI request for a 6d6Read command.
 ipcMain.on('6d6read', async (event: any, data: ReadData) => {
   const from = path.join(data.srcPath, data.srcFilename)
-  const to = path.join(data.destPath, data.destFilename)
+  const to = path.join(data.targetDirectory, data.destFilename)
   if (!checkForFileExistence(to)) {
     taskManager.$6d6read(from, to, binariesInstalled)
   } else {
@@ -317,12 +219,11 @@ export interface MSeedData {
   resample: boolean,
   ignoreSkew: boolean,
   cut: number,
-  startDate: string,    // ??
-  startTime: string,    // ??
-  endDate: string,      // ??
-  endTime: string,      // ??
-  timeChoice: string    // ??
-
+  startDate: string,
+  startTime: string,
+  endDate: string,
+  endTime: string,
+  timeChoice: 'none'| 'both'| 'start'| 'end'
 }
 
 // Handling the UI request for a 6d6MSeed command.
@@ -340,9 +241,4 @@ ipcMain.on('6d6mseed', (event: any, data: MSeedData) => {
       message: 'The station folder already exists.'
     })
   }
-})
-
-// Forwarding of a UI induced action on a task.
-ipcMain.on('task-action', (e: Error, id: string, action: Action) => {
-  taskManager.action(id, action)
 })

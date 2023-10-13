@@ -1,5 +1,8 @@
 // Subcomponent of Menu to prevent repetition.
-const MenuItem = ({ changeContent, menuItem }) => {
+import { MenuElement } from "../App"
+import React from "react"
+
+const MenuItem = ({ changeContent, menuItem }: {changeContent: Function, menuItem: MenuElement }) => {
   const addOn = menuItem.active ? 'active' : ''
   const className = 'menu-item ' + addOn
   return (

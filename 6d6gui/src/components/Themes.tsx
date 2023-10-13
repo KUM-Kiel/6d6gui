@@ -1,10 +1,11 @@
 // Handling of the theme-change.
-const setTheme = themeName => {
+
+export const setTheme = (themeName: string) => {
   localStorage.setItem('theme', themeName)
   document.documentElement.className = themeName
 }
 
-const keepTheme = () => {
+export const keepTheme = () => {
   if (localStorage.getItem('theme')) {
     if (localStorage.getItem('theme') === 'theme-dark') {
       setTheme('theme-dark')
@@ -14,9 +15,4 @@ const keepTheme = () => {
   } else {
     setTheme('theme-dark')
   }
-}
-
-module.exports = {
-  setTheme,
-  keepTheme
 }

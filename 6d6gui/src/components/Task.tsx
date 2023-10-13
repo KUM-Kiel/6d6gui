@@ -1,7 +1,15 @@
+import React from "react"
 import IconButton from './IconButton'
+import { Task } from "../../../electron-app/spawnProcess"
+
+type TaskProps = {
+  task: Task,
+  activateAction: Function,
+  darkMode: boolean
+}
 
 // UI for Task 'containers'.
-const Task = ({ task, activateAction, darkMode }) => {
+const Task = ({ task, activateAction, darkMode }: TaskProps) => {
   return (
     <div className="task-container">
       <div className="task" title={task.description}>
@@ -24,7 +32,7 @@ const Task = ({ task, activateAction, darkMode }) => {
         <div>
           {task.actions.map(action => (
             <div>
-              <IconButton activateAction={activateAction} taskId={task.id} action={action} />
+              <IconButton activateAction={activateAction} taskId={task.id} action={action} darkMode={darkMode} />
             </div>
           ))}
         </div>

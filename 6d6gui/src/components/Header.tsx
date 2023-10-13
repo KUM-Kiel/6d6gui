@@ -1,5 +1,7 @@
 // Header of the Application.
-const Header = ({ title }) => {
+import React from "react"
+
+const Header = ({ title }: {title:string}) => {
   return (
     <div >
       <p className={'header'} >{title}</p>

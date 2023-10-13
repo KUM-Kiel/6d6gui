@@ -1,17 +1,25 @@
 // Main Content for the use of 6D6Copy.
 
-import { useState } from 'react'
-import TextInput from './TextInput'
 import { useValidatedState, numericCheck, filenameCheck } from '../validation'
+import { d6InfoStructure } from '../../../electron-app/main'
+import StartButton from './StartButton'
+import TextInput from './TextInput'
+import { Actions } from '../App'
+import React from 'react'
 
-
-
+type SegyProps = {
+  actions: Actions,
+  destPath: string,
+  d6Info: d6InfoStructure | null,
+  startProcessing: Function,
+  shotFile: string
+}
 
 // The view for the use of 6d6Copy.
-export const Segy = ({ actions, choosePath, srcFile, startProcessing, destPath, shotfile }) => {
+export const Segy = ({ actions, destPath, d6Info, startProcessing, shotFile }: SegyProps) => {
 
 
-  const [filename, setFilename] = useValidatedState('', filenameCheck(1,30) )
+  const [filename, setFilename] = useValidatedState('', filenameCheck(1, 30))
   const [traceDuration, setTraceDuration] = useValidatedState('', numericCheck(1, 100000))
 
 
@@ -31,7 +39,7 @@ export const Segy = ({ actions, choosePath, srcFile, startProcessing, destPath, 
       >
         Choose Shotfile
       </button>
-      {srcFile.path !== '' && (
+      {d6Info.srcFileDir !== '' && (
         <button
           className='btn medium'
           onClick={actions.chooseTargetDirectory}
@@ -39,7 +47,7 @@ export const Segy = ({ actions, choosePath, srcFile, startProcessing, destPath, 
           Choose Output Location
         </button>
       )}
-      <div className={`${srcFile.path === '' ? 'hidden' : 'shown'}`}></div>
+      <div className={`${d6Info.srcFileDir === '' ? 'hidden' : 'shown'}`}></div>
       <TextInput
         value={filename.value}
         valid={filename.valid}
@@ -51,6 +59,13 @@ export const Segy = ({ actions, choosePath, srcFile, startProcessing, destPath, 
         valid={traceDuration.valid}
         changeFunction={setTraceDuration}
         placeholder={'Duration of a Trace'}
+      />
+      <StartButton
+        filename={filename}
+        type={'segy'}
+        d6Info={d6Info}
+        destPath={destPath}
+        startProcessing={startProcessing}
       />
 
       <button

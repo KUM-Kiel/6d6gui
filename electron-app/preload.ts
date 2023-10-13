@@ -5,7 +5,7 @@ import { Device } from './6d6watcher'
 
 type eventCallback = (event: any, ...data: any[]) => void
 
-contextBridge.exposeInMainWorld('ipcRenderer', {
+contextBridge.exposeInMainWorld('ipcRenderer', { ...ipcRenderer,
   on: (ev: string, cb: eventCallback) => {
     ipcRenderer.on(ev, (e: any, ...data: any[]) => {
       cb({
@@ -23,7 +23,10 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   chooseFile: (name: string, extensions: string[]): Promise<string[] | null> => ipcRenderer.invoke('chooseFile', name, extensions, false),
 
-  chooseDirectory: (name: string, extensions: string[]): Promise<string[] | null> => ipcRenderer.invoke('chooseDirectory', name, extensions, true),
+  chooseDirectory: (name: string, extensions: string[]): Promise<string[] | null> => ipcRenderer.invoke('chooseFile', name, extensions, true),
 
-  get6d6Info: (filename: string): Promise<InfoJson> => ipcRenderer.invoke('6d6info', filename)
+  get6d6Info: (filename: string): Promise<InfoJson> => ipcRenderer.invoke('6d6info', filename),
+
+  taskAction: (id: string, action: string): Promise<void> =>
+  ipcRenderer.invoke('taskAction', id, action)
 })

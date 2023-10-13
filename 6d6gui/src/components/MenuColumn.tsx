@@ -1,9 +1,19 @@
-import MenuItem from './MenuItem'
-import { setTheme } from './Themes'
+import { Device } from "../../../electron-app/6d6watcher"
 import { useEffect, useState } from 'react'
+import { MenuElement } from "../App"
+import { setTheme } from './Themes'
+import MenuItem from './MenuItem'
+import React from "react"
+
+type MenuColumnProps = {
+  menu: MenuElement[],
+  changeContent: Function,
+  directories: Device[],
+  setAppDarkMode: Function
+}
 
 // Top menu to choose between the different 6D6 suites (and a theme toggle).
-const Menu = ({ menu, changeContent, directories, setAppDarkMode }) => {
+const MenuColumn = ({ menu, changeContent, directories, setAppDarkMode }: MenuColumnProps) => {
   const [togClass, setTogClass] = useState('light')
   const [darkMode, setDarkMode] = useState(true)
   let theme = localStorage.getItem('theme')
@@ -73,4 +83,4 @@ const Menu = ({ menu, changeContent, directories, setAppDarkMode }) => {
   )
 }
 
-export default Menu
+export default MenuColumn
