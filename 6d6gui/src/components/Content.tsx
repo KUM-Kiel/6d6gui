@@ -1,22 +1,26 @@
-import { MSeedData, ReadData, CopyData, d6InfoStructure } from '../../../electron-app/main'
-import { Actions } from '../App'
+import { MSeedData, ReadData, CopyData, SegyData } from '../../../electron-app/main'
+import { ValidatedValue } from '../validation'
+import { Actions, srcFileObj } from '../App'
+import MSeed from './MSeed'
 import React from "react"
 import Copy from './Copy'
-import MSeed from './MSeed'
 import Read from './Read'
 import Segy from './Segy'
+import { InfoJson } from '../../../electron-app/kum-6d6'
 
+// Defining the structure of the Content Props.
 type ContentProps = {
   contentId: number,
   setHighlightTime: Function,
   actions: Actions,
   targetDirectory: string,
   fileChoice: string | null,
-  setFilename: string,
-  filename: string,
-  triggerAction: Function,
-  d6Info: d6InfoStructure | null,
-  shotFile: string
+  setFilename: (value: string) => void,
+  filename: ValidatedValue<string>,
+  triggerConversion: Function,
+  d6Info: InfoJson | null,
+  srcFile: srcFileObj,
+  shotfile: string
 }
 
 // Conainer for the main content of a chosen MenuItem.
@@ -28,18 +32,19 @@ const Content = ({
   fileChoice,
   setFilename,
   filename,
-  triggerAction,
+  triggerConversion,
   d6Info,
-  shotFile
+  srcFile,
+  shotfile
 }: ContentProps) => {
-  let contentShown
 
+  let contentShown
   // Passing the function call to App.js.
-  const startProcessing = (data: MSeedData | ReadData | CopyData): void => {
-    triggerAction(data)
+  const startProcessing = (data: MSeedData | ReadData | CopyData | SegyData): void => {
+    triggerConversion(data)
   }
 
-  // Change the content depending on the chosen MenuItem.
+  // Change the content depending on the chosen MenuItem in the MenuColumn.
   if (contentId === 1) {
     contentShown = (
       <Read
@@ -48,6 +53,7 @@ const Content = ({
         actions={actions}
         destPath={targetDirectory}
         d6Info={d6Info}
+        srcFile={srcFile}
         startProcessing={startProcessing}
       />
     )
@@ -58,17 +64,21 @@ const Content = ({
         actions={actions}
         destPath={targetDirectory}
         d6Info={d6Info}
+        srcFile={srcFile}
         startProcessing={startProcessing}
       />
     )
   } else if (contentId === 2) {
     contentShown = (
       <Segy
-        actions={actions}
-        destPath={targetDirectory}
-        d6Info={d6Info}
-        shotFile={shotFile}
-        startProcessing={startProcessing}
+      actions={actions}
+      destPath={targetDirectory}
+      d6Info={d6Info}
+      srcFile={srcFile}
+      shotfile={shotfile}
+      filename={filename}
+      setFilename={setFilename}
+      startProcessing={startProcessing}
       />
     )
   } else {
@@ -79,7 +89,7 @@ const Content = ({
         setFilename={setFilename}
         actions={actions}
         destPath={targetDirectory}
-        d6Info={d6Info}
+        srcFile={srcFile}
         startProcessing={startProcessing}
       />
     )

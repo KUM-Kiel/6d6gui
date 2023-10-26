@@ -1,8 +1,7 @@
-const readline = require('readline')
-const fs = require('fs')
-
 import { ChildProcess, spawn } from 'child_process'
 import { Action } from './spawnProcess'
+import readline from 'readline'
+import fs from 'fs'
 
 // Class to set up a process and handle existing ones.
 class Process {
@@ -54,7 +53,7 @@ class Process {
   // Set general Standard -OUT/-IN/-ERR handling.
   stdinFromFile (inputPath: string) {
     if (!this.isRunning()) throw new Error('Process is not running')
-    fs.createReadStream(inputPath).pipe(this.process.stdin)
+    fs.createReadStream(inputPath).pipe(this.process.stdin!)
   }
   stdoutToFile (outputPath: string) {
     if (!this.process.stdout) throw Error('Wäh!')
@@ -62,7 +61,7 @@ class Process {
   }
   stdoutToLines (outHandler:  (a: string) => void) {
     const rl = readline.createInterface({
-      input: this.process.stdout,
+      input: this.process.stdout!,
       crlfDelay: Infinity
     })
     rl.on('line', outHandler)
@@ -71,9 +70,9 @@ class Process {
     if (!this.process.stderr) throw Error('Wäh!')
     this.process.stderr.pipe(fs.createWriteStream(errPath))
   }
-  stderrToLines (errHandler: Function) {
+  stderrToLines (errHandler: ((...args: any[]) => void)) {
     const rl = readline.createInterface({
-      input: this.process.stderr,
+      input: this.process.stderr!,
       crlfDelay: Infinity
     })
     rl.on('line', errHandler)

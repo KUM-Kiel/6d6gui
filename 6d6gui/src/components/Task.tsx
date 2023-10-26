@@ -1,6 +1,6 @@
-import React from "react"
-import IconButton from './IconButton'
 import { Task } from "../../../electron-app/spawnProcess"
+import IconButton from './IconButton'
+import React from "react"
 
 type TaskProps = {
   task: Task,
@@ -9,7 +9,7 @@ type TaskProps = {
 }
 
 // UI for Task 'containers'.
-const Task = ({ task, activateAction, darkMode }: TaskProps) => {
+const TaskContainer = ({ task, activateAction, darkMode }: TaskProps) => {
   return (
     <div className="task-container">
       <div className="task" title={task.description}>
@@ -41,4 +41,4 @@ const Task = ({ task, activateAction, darkMode }: TaskProps) => {
   )
 }
 
-export default Task
+export default TaskContainer

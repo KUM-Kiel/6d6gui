@@ -23,18 +23,13 @@ export interface ValidatedValue<T> {
   valid: boolean
 }
 
-export const useValidatedState = <T,>(initialValue: T, validator: (value: T) => boolean): [ValidatedValue<T>, (value: t) => void] => {
+// aus 't' ein 'T' gemacht @ [...,(value: t) => void]
+export const useValidatedState = <T,>(initialValue: T, validator: (value: T) => boolean): [ValidatedValue<T>, (value: T) => void] => {
   const [v, s] = useState({
     value: initialValue,
     valid: validator(initialValue)
   })
-  return [
-    v,
-    (value: T) => s({
-      value,
-      valid: validator(value)
-    })
-  ]
+  return [v, (value: T) => s({value, valid: validator(value)})]
 }
 
 export default useValidatedState

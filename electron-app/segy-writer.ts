@@ -1,5 +1,5 @@
-const fs = require('fs')
-const util = require('util')
+import fs from 'fs'
+import util from 'util'
 
 const fsopen = util.promisify(fs.open)
 const fsread = util.promisify(fs.read)

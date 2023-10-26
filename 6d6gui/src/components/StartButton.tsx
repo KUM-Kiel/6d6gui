@@ -1,14 +1,14 @@
 // Button to start a process/command.
-import { d6InfoStructure } from "../../../electron-app/main"
 import { ValidatedValue } from "../validation"
+import { srcFileObj } from "../App"
 import React from "react"
 
 type StartButtonProps = {
   startProcessing: Function,
   type: string,
-  filename: ValidatedValue, // ???
+  filename: ValidatedValue<string>, // ???
   destPath: string,
-  d6Info: d6InfoStructure
+  srcFile: srcFileObj
 }
 
 const StartButton = ({
@@ -16,16 +16,16 @@ const StartButton = ({
   type,
   filename,
   destPath,
-  d6Info
+  srcFile
 }: StartButtonProps) => {
   let condition : string
 
   if (type === 'copy') {
     condition = destPath
   } else if (type === 'read') {
-    condition = d6Info.srcFileDir
+    condition = srcFile.path
   }  else {
-    condition = d6Info.srcFileDir
+    condition = srcFile.path
   }
   return (
     <div>

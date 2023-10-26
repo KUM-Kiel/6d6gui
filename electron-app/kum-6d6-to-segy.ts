@@ -1,18 +1,16 @@
-import Kum6D6 from './kum-6d6'
 import { readShotFile, Shot } from './shot-file-parser'
-import { limit512, str, memoryCompare, readBcdTime, kum6D6HeaderRead, malformedMessage } from './6d6-header'
-import { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
-import TaiDate from './tai'
 import { SegyWriter } from './segy-writer'
+import Kum6D6 from './kum-6d6'
 
 import path from 'path'
 import fs from 'fs/promises'
+import { Pauser } from './pauser'
 
 // For testing purposes.
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
 
 // generate seg-y files
-const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string) => {
+export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, pauser: Pauser, /* traceLength: number, */ onUpdate: (percentage: number, progress: string) => void) => {
   const file = await Kum6D6.open(location6d6)
   // tracelength: time * sampleRate, settable by user
   // tracelength "30" shall be set dynamically by the user in the future.
@@ -26,10 +24,6 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
     segyFiles[i] = await SegyWriter.create(path.join(locationTarget, filenameSegy + '-' + channels[i].name + '.segy'))
     await segyFiles[i].writeHeader(file.header, traceLength)
   }
-  //console.log('metaDataStart: ', file.fileMetaDataStart)
-  //console.log('metaDataEnd: ', file.fileMetaDataEnd)
-  //console.log('skew: ', file.header.skew)
-
   // shot in shotfile - parser, read shots per line
   // compare timestamp to 6d6file
   // every shotfile-line shall be a trace from .6d6
@@ -37,6 +31,7 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
   // write file headers
   const shotFile = await readShotFile(locationShotFile)
   for (let i = 0; i < shotFile.length; ++i) {
+    onUpdate(100 * i / shotFile.length, i + '/' + shotFile.length + ' shots processed')
     // console.log({start:i})
     // relocate 'write to trace' because of read information from meta-data?
     // such as: timestamp, temperature, voltage humidity?
@@ -90,6 +85,7 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
           console.log('Rebootet at: ' + t + ' with: ' + v + 'V')
         }
       })) throw new Error('File too short')
+      await pauser.whilePaused()
 
       // write fake samples for testing
       /*sampleFrames += 1
@@ -102,15 +98,15 @@ const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locatio
   for (let i = 0; i < segyFiles.length; ++i) {
     await segyFiles[i].close()
   }
+  onUpdate(100, shotFile.length + '/' + shotFile.length + ' shots processed')
 }
-
 
 const createSegyFile = async (segyData: number, destinationTarget: string): Promise<void> => {
 }
 
-export const createSegyFiles = async (location6d6: string, locationShotfile: string, locationTarget: string, filenameSegy: string ) => {
+export const createSegyFiles = async (location6d6: string, locationShotfile: string, locationTarget: string, filenameSegy: string ) => {}
 
-  await kum6D6ToSegy(location6d6, locationTarget, locationShotfile, filenameSegy)
+/*   await kum6D6ToSegy(location6d6, locationTarget, locationShotfile, filenameSegy)
 }
 
 async function test() {
@@ -120,3 +116,6 @@ async function test() {
 test().catch(e => {
   console.error(e)
 })
+*/
+
+export default kum6D6ToSegy

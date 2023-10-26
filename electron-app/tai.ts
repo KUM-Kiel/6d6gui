@@ -27,6 +27,7 @@ const leapseconds = [
   489024035000000n,
   536544036000000n,
 ]
+
 const lastValid = 741484837000000n
 const nextUpdate = 728524837000000n
 

@@ -1,7 +1,7 @@
-import kum6D6HeaderRead, { Kum6d6Header, memoryCompare } from './6d6-header'
-import TaiDate from './tai'
+import { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
+import kum6D6HeaderRead, { Channel, Kum6d6Header } from './6d6-header'
 import combine6d6Headers, { Combined6d6Header } from './6d6-header-validation'
-import kum6D6MetaFrameRead, { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
+import TaiDate from './tai'
 import File from './file'
 
 const isOdd = (n: number): boolean => {
@@ -33,7 +33,7 @@ export interface InfoJson {
   skew?: number,
   sample_rate: number,
   size: number,
-  channels: {name: string, gain: number}[],
+  channels: Channel[],
   comment: string
 }
 

@@ -1,7 +1,8 @@
-const path = require('path')
-
+import { MSeedData, SegyData } from './main'
 import Process from './process'
-import { MSeedData } from './main'
+import path from 'path'
+import Pauser from './pauser'
+import kum6D6ToSegy from './kum-6d6-to-segy'
 
 // Filling up single digits with prepending zeros.
 const pad = (n: number): string => (n < 10 ? '0' : '') + n
@@ -25,7 +26,7 @@ const significant = (n: number): string => {
   }
 }
 
-// Returning a simpler representation of a given amount of bytes.
+// Returning a more comprehensible representation of a given amount of bytes.
 const formatBytes = (bytes: number): string => {
   if (bytes < 1000) {
     return bytes + 'B'
@@ -40,8 +41,10 @@ const formatBytes = (bytes: number): string => {
   }
 }
 
+// Predefined possbile action types.
 export type Action = 'cancel' | 'continue' | 'pause' | 'confirm'
 
+// Task structure
 export interface Task {
   id: string,
   title: string,
@@ -53,6 +56,7 @@ export interface Task {
   actions: Action[]
 }
 
+//
 export type UpdateCallback = (tasks: Task[]) => void
 
 interface Table<a> {
@@ -60,7 +64,7 @@ interface Table<a> {
 }
 
 // Handling tasks and creating the different 6D6 processes.
-class TaskManager {
+export class TaskManager {
   tasks: Table<Task>
   actions: Table<(a: Action) => void>
   nextId: bigint
@@ -72,6 +76,7 @@ class TaskManager {
     this.nextId = 0n
     this.onUpdate = onUpdate
   }
+  // Execute a specific action.
   action (id: string, action: Action) {
     const a = this.actions[id]
     if (typeof a === 'function') {
@@ -94,6 +99,7 @@ class TaskManager {
     this.nextId += 1n
     return id
   }
+  // Start a 6d6copy process with the given parameters.
   $6d6copy (from: string, to: string, filename: string, binInstalled: boolean) {
     const id: string = this.getId()
     const toChecked = /\.6d6$/.test(to) ? to : path.join(to, filename + '.6d6')
@@ -189,6 +195,7 @@ class TaskManager {
   $6d6mseed (data: MSeedData, tempPath: string, binInstalled: boolean) {
     let options = ['--json-progress']
     let insert = ''
+
     // All included/received options get added to the command call.
     // If the data.station object is empty, the command won't run.
     if (!/ /.test(data.station)) {
@@ -281,6 +288,54 @@ class TaskManager {
       eta: null,
       finished: false,
       actions: p.actions()
+    }
+  }
+  $6d6segy (data: SegyData) {
+    const id = this.getId()
+    const pauser = new Pauser()
+    kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, pauser, (percentage: number, progress: string) => {
+      this.tasks[id].percentage = percentage
+    }).then(() => {
+      this.tasks[id].actions = ['confirm']
+      this.tasks[id].finished = true
+      this.update()
+    }, e => {
+      this.tasks[id].actions = ['confirm']
+      this.tasks[id].finished = true
+      this.update()
+      //this.tasks[id].failed = true
+    })
+    this.actions[id] = action => {
+      if (this.tasks[id].finished) {
+        if (action === 'confirm') {
+          delete this.tasks[id]
+          delete this.actions[id]
+          this.update()
+        }
+      } else {
+        if (action === 'pause' && !pauser.paused) {
+          pauser.pause()
+          this.tasks[id].actions = ['continue', 'cancel']
+        } else if (action === 'continue' && pauser.paused) {
+          pauser.resume()
+          this.tasks[id].actions = ['pause', 'cancel']
+        } else if (action === 'cancel') {
+          pauser.cancel()
+          this.tasks[id].actions = ['confirm']
+          this.tasks[id].finished = true
+        }
+        this.update()
+      }
+    }
+    this.tasks[id] = {
+      id,
+      title: '6d6segy',
+      description: data.srcPath6d6 + ' + ' + data.srcPathShotfile + ' -> ' + data.targetLocation,
+      progress: '',
+      percentage: 0,
+      eta: null,
+      finished: false,
+      actions:  [pauser.paused ? 'continue' : 'pause', 'cancel']
     }
   }
 }

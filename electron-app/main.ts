@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import { Combined6d6Header } from './6d6-header-validation'
 import Watcher, { Device } from './6d6watcher'
 import TaskManager from './spawnProcess'
 import { execFile } from 'child_process'
@@ -17,6 +16,8 @@ export interface FileErrorData {
 }
 
 let mainWindow: any
+
+console.log(fs.readFileSync(path.join(__dirname, 'preload.js'), 'utf-8'))
 
 // Creating an electron window with specified options.
 function createWindow() {
@@ -97,15 +98,6 @@ const checkForFileExistence = async (path: string): Promise<boolean> => {
   }
 }
 
-/* const fileChoiceDialog = async (options: any): Promise<> => {
-  return dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile'],
-    filters: [
-      options
-    ]
-  })
-} */
-
 ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
   let window = BrowserWindow.fromWebContents(event.sender)
   if (window === null) return null
@@ -117,35 +109,24 @@ ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
       }
     ]
   })
-  if (result.canceled || result.filePaths[0].length !== 1) return null
-  if (directory) {
-    return { path: result.filePaths[0] }
-  } else {
-    return { path: result.filePaths[0], srcFileDir: path.parse(result.filePaths[0]).dir, scrFileBase: path.parse(result.filePaths[0]).base }
-  }
+  if (result.canceled || result.filePaths.length !== 1) return null
+  return result.filePaths
 })
 
-export interface d6InfoStructure {
-  info: Combined6d6Header | null,
-  channelNr: number,
-  srcFile: string,
-  srcFileBase: string,
-  srcFileDir: string
-}
 
-ipcMain.handle('6d6info', async (event, path) => {
+ipcMain.handle('6d6info', async (event, filepath) => {
   if (process.platform === 'win32') {
-    let r = await Kum6D6.open(path)
+    let r = await Kum6D6.open(filepath)
 
     if (r === null) return null
 
-    return {...r.infoJson(), srcFile: path }
+    return {info: r.infoJson(),path: filepath, base: path.basename(filepath), ext: path.extname(filepath)}
   } else {
     const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
-    const r = await execFileAsync(command, ['--json', path])
+    const r = await execFileAsync(command, ['--json', filepath])
     const result = JSON.parse(r.stdout)
 
-    return { ...result, srcFile: path }
+    return {info: result,path: filepath, ext: path.extname(filepath), base: path.basename(filepath)}
   }
 })
 
@@ -160,11 +141,11 @@ const taskManager = new TaskManager(tasks => {
 })
 
 export interface CopyData {
+  type: string,
   source: string,
   targetFilename: string,
   destPath: string
 }
-
 
 // Handling the UI request for a 6d6Copy command.
 ipcMain.on('6d6copy', (event: any, data: CopyData) => {
@@ -184,7 +165,9 @@ ipcMain.on('6d6copy', (event: any, data: CopyData) => {
   }
 })
 
+
 export interface ReadData {
+  type: string,
   srcPath: string,
   srcFilename: string,
   targetDirectory: string,
@@ -206,6 +189,7 @@ ipcMain.on('6d6read', async (event: any, data: ReadData) => {
 })
 
 export interface MSeedData {
+  type: string,
   srcPath: string,
   srcFilename: string,
   destPath: string,
@@ -226,6 +210,7 @@ export interface MSeedData {
   timeChoice: 'none'| 'both'| 'start'| 'end'
 }
 
+
 // Handling the UI request for a 6d6MSeed command.
 ipcMain.on('6d6mseed', (event: any, data: MSeedData) => {
   console.log(data)
@@ -242,3 +227,15 @@ ipcMain.on('6d6mseed', (event: any, data: MSeedData) => {
     })
   }
 })
+
+export interface SegyData {
+  type: string,
+  filenameSegy: string,
+  srcPath6d6: string,
+  srcPathShotfile: string,
+  targetLocation: string,
+}
+
+ipcMain.on('6d6segy', (event: any, data: SegyData) => {
+
+}

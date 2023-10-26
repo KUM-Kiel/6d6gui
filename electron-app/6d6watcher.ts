@@ -1,13 +1,12 @@
+import { execFile } from 'child_process'
 import { InfoJson } from "./kum-6d6"
-import Tai from './tai'
+import { readdir } from 'fs'
+import util from 'util'
+import path from 'path'
+import fs from 'fs'
 
-const fs = require('fs')
-const util = require('util')
-const path = require('path')
-const child_process = require('child_process')
-
-const readdir = util.promisify(fs.readdir)
-const execFile = util.promisify(child_process.execFile)
+const execFileAsync = util.promisify(execFile)
+const readdirAsync = util.promisify(readdir)
 
 // Filter to only look for relevant files (devices).
 const filters: RegExp[] = [/^sd[a-z]\d+$/, /^mmcblk\d+p\d+$/]
@@ -40,7 +39,7 @@ const validateInfo = (info: any): InfoJson => {
 const info = async (dir: string, name: string): Promise<Device | null> => {
   try {
     const command: string = binInstalled ? '6d6info' : './public/bin/6d6info'
-    const r = await execFile(command, ['--json', path.join(dir, name)])
+    const r = await execFileAsync(command, ['--json', path.join(dir, name)])
     return {
       directory: dir,
       name: name,
@@ -54,7 +53,7 @@ const info = async (dir: string, name: string): Promise<Device | null> => {
 // Scans the devPath for relevant (meaning a 6d6info is returned) devices.
 const scanDevices = async (): Promise<Device[]> => {
   if (process.platform === 'win32') return []
-  const devices = (await readdir(devPath)).filter((d: string) => filters.filter(f => f.test(d)).length > 0)
+  const devices = (await readdirAsync(devPath)).filter((d: string) => filters.filter(f => f.test(d)).length > 0)
   const result = []
   for (let i = 0; i < devices.length; ++i) {
     const d = await info(devPath, devices[i])

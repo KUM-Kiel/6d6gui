@@ -1,15 +1,14 @@
-import { Combined6d6Header } from '../../../electron-app/6d6-header-validation'
 import useValidatedState, { alphaNumericCheck } from '../validation'
-import { d6InfoStructure } from '../../../electron-app/main'
-import React, { useState } from 'react'
+import { InfoJson } from '../../../electron-app/kum-6d6'
+import React, { ChangeEventHandler, useState } from 'react'
 import TextInput from './TextInput'
-import { Actions } from '../App'
-import TaiDate from '../../../electron-app/tai'
+import { Actions, srcFileObj } from '../App'
 
 type MSeedProps = {
   actions: Actions,
   destPath: string,
-  d6Info: d6InfoStructure | null,
+  d6Info: InfoJson | null,
+  srcFile: srcFileObj,
   startProcessing: Function,
   setHighlightTime: Function,
 }
@@ -20,7 +19,7 @@ const pad = (n: number) => (n < 10 ? '0' : '') + n
 // Validation for cut input.
 const cutCheck = (maxChar: number) => {
   const regExp = new RegExp(`^[0-9]{` + 3 + ',' + maxChar + `}$`)
-  return (input: any) => regExp.test(input) && input >= 300
+  return (input: string) => regExp.test(input) && parseInt(input) >= 300
 }
 
 // Validation for channels input.
@@ -32,15 +31,15 @@ const validateChannelsInput = (channelNr: number) => {
   return (input: string) => input === '' || regExp.test(input)
 }
 
-const extractDateForInput = (header: Combined6d6Header | null, version: string, time: boolean): string => {
+const extractDateForInput = (header: InfoJson | null, version: string, time: boolean): string => {
   if (header === null) {
-    return new Date()
+    return new Date().toISOString()
   } else {
     let temp
     if (version === 'start') {
-      temp = new Date(header.startTime.toISOString())
+      temp = new Date(header.start_time)
     } else {
-      temp = new Date(header.endTime.toISOString())
+      temp = new Date(header.end_time)
     }
     if (time) {
       return pad(temp.getUTCHours()) + ':' + pad(temp.getUTCMinutes()) + ':' + pad(temp.getUTCSeconds())
@@ -77,34 +76,12 @@ const outputTemplateList = [
   { id: 10, name: 'Julian Day - %j', value: '%j' },
 ]
 
-const d6InfoInit = {
-  info:
-  {
-    version: 1,
-    startTime: new TaiDate(0),
-    endTime: new TaiDate(0),
-    sync: { time: new TaiDate(0), deviation: 0 },        // first sync
-    skew: null, // second sync
-    startAddressData: 0,
-    endAddressData: 0,
-    sampleRate: 0,
-    writtenSamples: 0,
-    lostSamples: 0,
-    bitDepth: 0,
-    recorderID: 0,
-    rtcID: '',
-    positionOne: { latitude: '', longitude: '' },
-    positionTwo: { latitude: '', longitude: '' },
-    channels: [{ name: '', gain: 0 }],
-    comment: ''
-  }, channelNr: 0, srcFile: '', srcFileBase: '', srcFileDir: ''
-}
-
 // Main Content for the use of 6D6MSeed.
 const MSeed = ({
   actions,
   destPath,
-  d6Info = d6InfoInit,
+  d6Info,
+  srcFile,
   startProcessing,
   setHighlightTime
 }: MSeedProps) => {
@@ -113,7 +90,7 @@ const MSeed = ({
   const [resample, setResample] = useState<boolean>(false)
   const [ignoreSkew, setIgnoreSkew] = useState<boolean>(false)
   const [timeChoice, setTimeChoice] = useState('none')
-  const [cut, setCut] = useValidatedState(86400, cutCheck(7))
+  const [cut, setCut] = useValidatedState('86400', cutCheck(7))
   const [station, setStation] = useValidatedState('', alphaNumericCheck(1, 5))
   const [network, setNetwork] = useValidatedState('', alphaNumericCheck(0, 2))
   const [location, setLocation] = useValidatedState('', alphaNumericCheck(0, 2))
@@ -121,9 +98,8 @@ const MSeed = ({
   const [startTime, setStartTime] = useState('')
   const [endDate, setEndDate] = useState('')
   const [endTime, setEndTime] = useState('')
-  const [channels, setChannels] = useValidatedState(
-    '',
-    validateChannelsInput(d6Info.channelNr)
+  const [channels, setChannels] = useValidatedState<string>('',
+    validateChannelsInput(d6Info ? d6Info.channels.length : 0)
   )
   const [outputTemplate, setOutputTemplate] = useState({
     value: standardTemplate,
@@ -133,7 +109,7 @@ const MSeed = ({
   // Resetting the template.
   const setStandardTemplate = () => {
     setOutputTemplate({ value: standardTemplate, valid: true })
-    document.getElementById('output-template').focus()
+    document.getElementById('output-template')?.focus()
   }
 
   const setOutputTemplatePlusCheck = (value: string) => {
@@ -148,7 +124,7 @@ const MSeed = ({
     setChannels('')
   }
 
-  const handleDropdownChange = (e: Event) => {
+  const handleDropdownChange: ChangeEventHandler<HTMLSelectElement> = e => {
     setTimeChoice(e.target.value)
     setHighlightTime(e.target.value)
   }
@@ -166,11 +142,11 @@ const MSeed = ({
     }
   }
 
-  const minDate = extractDateForInput(d6Info.info, 'start', false)
-  const maxDate = extractDateForInput(d6Info.info, 'end', false)
+  const minDate = extractDateForInput(d6Info, 'start', false)
+  const maxDate = extractDateForInput(d6Info, 'end', false)
 
-  const minTime = extractDateForInput(d6Info.info, 'start', true)
-  const maxTime = extractDateForInput(d6Info.info, 'end', true)
+  const minTime = extractDateForInput(d6Info, 'start', true)
+  const maxTime = extractDateForInput(d6Info, 'end', true)
 
   return (
     <div className='mseed-main'>
@@ -181,19 +157,19 @@ const MSeed = ({
       >
         Choose File
       </button>
-      {d6Info.srcFileDir !== '' && (
+      {srcFile.path !== '' && (
         <button
           className='btn medium'
-          onClick={actions.chooseTargetLocation()}
+          onClick={actions.chooseTargetDirectory}
         >
           Choose Output Location
         </button>
       )}
       <br />
-      <div className={`${d6Info.srcFileDir === '' ? 'hidden' : 'shown'}`}>
+      <div className={`${srcFile.path === '' ? 'hidden' : 'shown'}`}>
         <p>
           Set up to convert from
-          <span className='read-text-hightlight'> {d6Info.srcFileBase} </span>
+          <span className='read-text-hightlight'> {srcFile.base} </span>
           to
         </p>
         <div className='input out-template-path'>
@@ -223,7 +199,7 @@ const MSeed = ({
             key={template.id}
             onClick={() => {
               setOutputTemplatePlusCheck(outputTemplate.value + template.value)
-              document.getElementById('output-template').focus()
+              document.getElementById('output-template')?.focus()
             }}
           >
             {template.name}
@@ -330,8 +306,8 @@ const MSeed = ({
             No Cut
             <input
               type='checkbox'
-              label='no-cut'
-              checked={noCut}
+/*               label='no-cut'
+ */              checked={noCut}
               onChange={() => {
                 handleCheckboxChange(0)
               }}
@@ -342,8 +318,8 @@ const MSeed = ({
             Resample
             <input
               type='checkbox'
-              label='resample'
-              checked={resample}
+/*               label='resample'
+ */              checked={resample}
               onChange={() => {
                 handleCheckboxChange(1)
               }}
@@ -354,8 +330,8 @@ const MSeed = ({
             Ignore Skew
             <input
               type='checkbox'
-              label='ignoreSkew'
-              checked={ignoreSkew}
+/*               label='ignoreSkew'
+ */              checked={ignoreSkew}
               onChange={() => {
                 handleCheckboxChange(2)
               }}
@@ -377,7 +353,7 @@ const MSeed = ({
             className='btn medium reset'
             onClick={() => {
               setNoCut(true)
-              setCut(86400)
+              setCut('86400')
               setNoCut(false)
             }}
           >

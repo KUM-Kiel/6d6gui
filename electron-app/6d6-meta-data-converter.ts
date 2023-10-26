@@ -1,5 +1,5 @@
-import TaiDate from './tai'
 import { readBcdTime } from './6d6-header'
+import TaiDate from './tai'
 
 /// bruder massives interface
 

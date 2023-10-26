@@ -1,7 +1,6 @@
 import TaiDate from "./tai"
-
-const fs = require('fs')
-const util = require('util')
+import util from 'util'
+import fs from 'fs'
 
 const readFile = util.promisify(fs.readFile)
 

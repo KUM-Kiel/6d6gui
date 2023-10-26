@@ -1,17 +1,18 @@
 // Main Content for the use of 6D6Copy.
-import { d6InfoStructure } from '../../../electron-app/main'
 import StartButton from './StartButton'
 import TextInput from './TextInput'
-import { Actions } from '../App'
+import { Actions, srcFileObj } from '../App'
 import React from "react"
+import { ValidatedValue } from '../validation'
 
+// Defining the structure of the Props for the Copy-page.
 type CopyProps = {
   fileChoice: string | null,
-  actions: Actions, // ??
-  filename: string,
+  actions: Actions,
+  filename: ValidatedValue<string>,
   destPath: string,
-  d6Info: d6InfoStructure,
-  setFilename: string,
+  srcFile: srcFileObj | null,
+  setFilename: Function,
   startProcessing: Function,
 }
 
@@ -21,7 +22,7 @@ export const Copy = ({
   actions, // fail
   filename,
   destPath,
-  d6Info,
+  srcFile,
   setFilename,
   startProcessing,
 }: CopyProps) => {
@@ -35,7 +36,7 @@ export const Copy = ({
         <p>
           <button
             className="btn medium"
-            onClick={actions.chooseTargetDirectory()}
+            onClick={actions.chooseTargetDirectory}
           >
             Choose Directory
           </button>
@@ -59,13 +60,14 @@ export const Copy = ({
           in <span className="copy-text-hightlight">{destPath}/</span>
         </p>
       </div>
-      <StartButton
-        filename={filename}
-        destPath={destPath}
-        type={'copy'}
-        startProcessing={startProcessing}
-        d6Info={d6Info}
-      />
+      {srcFile !== null && (
+        <StartButton
+          filename={filename}
+          destPath={destPath}
+          type={'copy'}
+          startProcessing={startProcessing}
+          srcFile={srcFile}
+        />)}
     </div>
   )
 }

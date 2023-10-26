@@ -1,4 +1,4 @@
-import {Kum6d6Header, Channel} from './6d6-header'
+import { Kum6d6Header, Channel } from './6d6-header'
 import TaiDate from './tai'
 
 ///
@@ -34,7 +34,7 @@ export interface Combined6d6Header {
   comment: string
 }
 
-export const combine6d6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Header): Combined6d6Header => {
+export const combine6d6Headers = (headerOne: Kum6d6Header, headerTwo: Kum6d6Header): Combined6d6Header => {
   console.log([headerOne, headerTwo])
 
   if (headerOne.version !== headerTwo.version)
@@ -92,7 +92,7 @@ export const combine6d6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Hea
     version: headerOne.version,
     startTime: headerOne.time,
     endTime: headerTwo.time,
-    sync: {time: headerOne.syncTime, deviation: headerOne.skew },
+    sync: { time: headerOne.syncTime, deviation: headerOne.skew },
     skew,
     startAddressData: headerOne.address,
     endAddressData: headerTwo.address,
@@ -102,8 +102,8 @@ export const combine6d6Headers = (headerOne : Kum6d6Header, headerTwo: Kum6d6Hea
     bitDepth: headerOne.bitDepth,
     recorderID: headerOne.recorderID,
     rtcID: headerOne.rtcID,
-    positionOne: {latitude: headerOne.latitude, longitude: headerOne.latitude},
-    positionTwo: {latitude: headerTwo.latitude, longitude: headerTwo.longitude},
+    positionOne: { latitude: headerOne.latitude, longitude: headerOne.latitude },
+    positionTwo: { latitude: headerTwo.latitude, longitude: headerTwo.longitude },
     channels: headerOne.channels,
     comment: headerOne.comment
   }

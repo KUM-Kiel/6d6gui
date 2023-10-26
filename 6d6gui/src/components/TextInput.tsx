@@ -1,8 +1,8 @@
 // Enhanced text inputs with different validity checks for dynamic specs.
-import React from "react"
+import React, { ChangeEventHandler } from "react"
 
 type TextInputProps = {
-  value: number,
+  value: string,
   valid: boolean,
   placeholder: string,
 /*   disabled: boolean,
@@ -17,7 +17,7 @@ const TextInput = ({
   changeFunction,
 }: TextInputProps	) => {
 
-  const handleInputChange = e => {
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = e => {
     changeFunction(e.target.value)
   }
 

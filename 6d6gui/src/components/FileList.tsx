@@ -1,6 +1,6 @@
 // Showcase for the deviceList.
-import React from "react"
 import { Device } from "../../../electron-app/6d6watcher"
+import React from "react"
 
 type FileListProps = {
   dirList: Device[],
@@ -26,9 +26,9 @@ const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListPr
                     changeFile(obj.name)
                   }}
                   checked={obj.name === fileChoice}
-                  value={obj}
+                  value={obj.name}
                   name='file'
-                  key={obj.id}
+                  key={obj.info.recorder_id}
                 />
                 {obj.name}
               </label>
@@ -37,7 +37,7 @@ const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListPr
         </div>
       )}
       {dirList.length === 0 && (
-        <div className="list-style">Please connect a 6d6<br />device to copy from.</div>
+        <div className="list-style">Please connect a 6d6<br/>device to copy from.</div>
       )}
     </div>
   )
