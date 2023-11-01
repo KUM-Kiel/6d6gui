@@ -471,6 +471,7 @@ export class SegyWriter  {
   }
 
   async close(): Promise<void> {
+    if(this.fd === null) return
     if (this.bufferPosition > 0) {
       await fswrite(this.fd, this.buffer.slice(0, this.bufferPosition))
     }
@@ -478,7 +479,7 @@ export class SegyWriter  {
     this.fd = null
   }
 }
-
+/*
 
 const test = async () => {
   let writer: SegyWriter = await SegyWriter.create('test.segy')
@@ -494,3 +495,4 @@ if (require.main === module) {
     process.exit(1)
   })
 }
+ */

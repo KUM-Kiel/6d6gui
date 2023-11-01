@@ -1,19 +1,19 @@
 // Main Content for the use of 6D6Copy.
-import StartButton from './StartButton'
 import TextInput from './TextInput'
-import { Actions, srcFileObj } from '../App'
+import { Actions, fileObj } from '../App'
 import React from "react"
 import { ValidatedValue } from '../validation'
+import { CopyData } from '../../../electron-app/main'
 
 // Defining the structure of the Props for the Copy-page.
 type CopyProps = {
-  fileChoice: string | null,
+  srcFile: fileObj | null,
   actions: Actions,
   filename: ValidatedValue<string>,
   destPath: string,
-  srcFile: srcFileObj | null,
-  setFilename: Function,
-  startProcessing: Function,
+  setFilename: (value: string) => void,
+  startProcessing: (data: CopyData) => void,
+  fileChoice: string | null,
 }
 
 // The view for the use of 6d6Copy.
@@ -61,13 +61,17 @@ export const Copy = ({
         </p>
       </div>
       {srcFile !== null && (
-        <StartButton
-          filename={filename}
-          destPath={destPath}
-          type={'copy'}
-          startProcessing={startProcessing}
-          srcFile={srcFile}
-        />)}
+        <button
+          type="submit"
+          className="btn medium confirmation"
+          onClick={() => {
+            startProcessing({
+              type: 'copy',
+              srcPath: srcFile.filepath,
+              targetDirectory: destPath,
+              filenameCopy: filename.value,
+            })
+          }}></button>)}
     </div>
   )
 }

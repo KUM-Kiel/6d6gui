@@ -1,12 +1,12 @@
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import D6RecorderChannels from './D6RecorderChannels'
-import { srcFileObj } from '../App.js'
+import { fileObj } from '../App.js'
 import React from "react"
 
 type D6InfoProps = {
   d6Info: InfoJson | null,
   fileChoice: string | null,
-  srcFile: srcFileObj,
+  srcFile: fileObj,
   highlightTime: string
 }
 // Showing the formatted 6D6Info between the deviceList & main content.
@@ -111,7 +111,7 @@ const D6Info = ({ d6Info, fileChoice, srcFile, highlightTime }: D6InfoProps) => 
                 This is the 6d6Info for{' '}
                 <span className='read-text-hightlight'>
                   {' '}
-                  {fileChoice !== null ? fileChoice : srcFile.path}
+                  {fileChoice !== null ? fileChoice : srcFile.filepath}
                 </span>
               </p>
 

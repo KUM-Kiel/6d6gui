@@ -1,19 +1,19 @@
 // Main Content for the use of 6D6Read.
 import { ValidatedValue } from "../validation"
-import StartButton from './StartButton'
 import TextInput from './TextInput'
-import { Actions, srcFileObj } from "../App"
+import { Actions, fileObj } from "../App"
 import React from "react"
 import { InfoJson } from "../../../electron-app/kum-6d6"
+import { ReadData } from "../../../electron-app/main"
 
 type ReadProps = {
-  d6Info: InfoJson | null,
-  srcFile: srcFileObj,
+  srcFile: fileObj,
   actions: Actions,
-  startProcessing: Function,
   filename: ValidatedValue<string>,
   destPath: string,
-  setFilename: Function
+  setFilename: (value: string) => void
+  startProcessing: (data: ReadData) => void,
+  d6Info: InfoJson | null,
 }
 
 export const Read = ({
@@ -50,9 +50,9 @@ export const Read = ({
         <div className={`${d6Info !== null ? 'hidden' : 'shown'}`}>
           <br />
           Set up to convert from
-          <span className="read-text-hightlight"> {srcFile.base} </span> to
+          <span className="read-text-hightlight"> {srcFile.file} </span> to
           <div className="row">
-            {srcFile.path !== '' && (
+            {srcFile.filepath !== '' && (
               <TextInput
                 value={filename.value}
                 valid={filename.valid}
@@ -66,14 +66,25 @@ export const Read = ({
           </p>
         </div>
         <br />
-        <StartButton
+        {/*  <StartButton
           filename={filename}
           type={'read'}
           srcFile={srcFile}
-        /*   d6Info={d6Info} */
-          destPath={destPath}
+        //   d6Info={d6Info}
+          destPath = { destPath }
           startProcessing={startProcessing}
-        />
+        /> */}
+        <button
+          type="submit"
+          className="btn medium confirmation"
+          onClick={() => {
+            startProcessing({
+              type: 'read',
+              srcPath: srcFile.filepath,
+              filenameRead: filename.value,
+              targetDirectory: destPath
+            })
+          }}></button>
       </div>)}
     </div>
   )

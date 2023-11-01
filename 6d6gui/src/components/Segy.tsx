@@ -3,19 +3,20 @@
 import { useValidatedState, numericCheck, ValidatedValue } from '../validation'
 import StartButton from './StartButton'
 import TextInput from './TextInput'
-import { Actions, srcFileObj } from '../App'
+import { Actions, fileObj } from '../App'
 import React from 'react'
 import { InfoJson } from '../../../electron-app/kum-6d6'
+import { SegyData } from '../../../electron-app/main'
 
 type SegyProps = {
+  srcFile: fileObj
   actions: Actions,
-  destPath: string,
-  d6Info: InfoJson | null,
-  srcFile: srcFileObj
-  startProcessing: Function,
-  shotfile: string
   filename: ValidatedValue<string>
-  setFilename: Function
+  destPath: string,
+  setFilename: (value: string) => void
+  startProcessing: (data: SegyData) => void,
+  d6Info: InfoJson | null,
+  shotfile: string
 }
 
 // The view for the use of 6d6Copy.
@@ -33,16 +34,23 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
       >
         Choose .6d6 File
       </button>
-      {}
+      { }
       <button
         className='btn medium'
         onClick={actions.chooseShotfile}
       >
         Choose Shotfile
       </button>
-      {shotfile !== null && (
+      {srcFile.filepath !== '' && (
         <div>
-        <p>Your Shotfile: {shotfile}</p>
+          <p><b>6d6 file:</b></p>
+          <p>{srcFile.filepath}</p>
+        </div>
+      )}
+      {shotfile !== '' && (
+        <div>
+          <p><b>Shotfile:</b></p>
+          <p>{shotfile}</p>
         </div>
       )}
       {d6Info !== null && (<div>
@@ -52,38 +60,49 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
         >
           Choose Output Location
         </button>
-
-        <div className={`${srcFile.path === '' ? 'hidden' : 'shown'}`}>
+        {shotfile !== '' && (
+          <div>
+            <p><b>Output direction:</b></p>
+            <p>{destPath}</p>
+          </div>
+        )}
+        <div className={`${srcFile.filepath === '' ? 'hidden' : 'shown'}`}>
 
         </div>
+        <br />
         <TextInput
           value={filename.value}
           valid={filename.valid}
           changeFunction={setFilename}
           placeholder={'Filename'}
         />
+        <br />
         <TextInput
           value={traceDuration.value}
           valid={traceDuration.valid}
           changeFunction={setTraceDuration}
           placeholder={'Duration of a Trace'}
         />
-        <StartButton
-          filename={filename}
-          type={'segy'}
-          srcFile={srcFile}
-/*           d6Info={d6Info}
- */          destPath={destPath}
+        {/* <StartButton
           startProcessing={startProcessing}
-        />
+          type={'segy'}
+          filename={filename}
 
+          destPath={destPath}
+          srcFile={srcFile}
+          srcPathShotfile={shotfile}
+        /> */}
         <button
           type="submit"
           className="btn medium confirmation"
           onClick={() => {
             startProcessing({
-              filename: filename,
-              traceDuration: traceDuration,
+              type: 'segy',
+              filenameSegy: filename.value,
+              traceDuration: +traceDuration.value,
+              srcPath6d6: srcFile.filepath,
+              srcPathShotfile: shotfile,
+              targetLocation: destPath
             })
           }}>
           Convert

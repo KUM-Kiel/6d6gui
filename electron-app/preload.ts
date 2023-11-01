@@ -27,19 +27,19 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   chooseDirectory: (name: string, extensions: string[]): Promise<string[] | null> => ipcRenderer.invoke('chooseFile', name, extensions, true),
 
-  get6d6Info: (filename: string): Promise<{ info: InfoJson, path: string, base: string, ext: string }> => ipcRenderer.invoke('6d6info', filename),
+  get6d6Info: (filepath: string): Promise<{ info: InfoJson, filepath: string, base: string, ext: string, directoryPath: string }> => ipcRenderer.invoke('6d6info', filepath),
 
   triggerConversion: (data: MSeedData | ReadData | CopyData | SegyData): Promise<string> => {
     if (data.type === 'mseed') {
-      ipcRenderer.invoke('6d6mseed', data)
+      return ipcRenderer.invoke('6d6mseed', data)
     } else if (data.type === 'segy') {
-      ipcRenderer.invoke('6d6segy', data)
+      return ipcRenderer.invoke('6d6segy', data)
     } else if (data.type === 'copy') {
-      ipcRenderer.invoke('6d6copy', data)
+      return ipcRenderer.invoke('6d6copy', data)
     } else if (data.type === 'read') {
-      ipcRenderer.invoke('6d6read', data)
+      return ipcRenderer.invoke('6d6read', data)
     } else {
-      return 'error'
+      return Promise.reject('The provided type was invalid.')
     }
   },
 

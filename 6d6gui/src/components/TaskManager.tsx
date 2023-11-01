@@ -3,7 +3,9 @@ import TaskComponent from './Task'
 import React from "react"
 
 type TaskManagerProps = {
-  taskList: Task[], triggerAction: Function, appDarkMode: boolean
+  taskList: Task[],
+  triggerAction: (id: string, action: string) => void,
+  appDarkMode: boolean
 }
 
 // UI for the whole TaskManager content i.e. tasks.

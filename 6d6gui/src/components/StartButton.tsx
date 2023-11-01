@@ -1,31 +1,42 @@
 // Button to start a process/command.
 import { ValidatedValue } from "../validation"
-import { srcFileObj } from "../App"
+import { fileObj } from "../App"
 import React from "react"
+import { CopyData, ReadData, SegyData } from "../../../electron-app/main"
+import { InfoJson } from "../../../electron-app/kum-6d6"
 
 type StartButtonProps = {
-  startProcessing: Function,
+
+  // anpassen, soll ich wirklich genau sein?:D
   type: string,
   filename: ValidatedValue<string>, // ???
   destPath: string,
-  srcFile: srcFileObj
+  srcFile: fileObj,
+  startProcessing: (data: ReadData | CopyData | SegyData) => void,
+  shotfile?: string,
+  d6Info?: InfoJson,
+  fileChoice?: string,
 }
 
 const StartButton = ({
-  startProcessing,
   type,
   filename,
   destPath,
-  srcFile
+  srcFile,
+  startProcessing,
+  shotfile,
+  d6Info,
+  fileChoice,
+
 }: StartButtonProps) => {
   let condition : string
 
   if (type === 'copy') {
     condition = destPath
   } else if (type === 'read') {
-    condition = srcFile.path
+    condition = srcFile.filepath
   }  else {
-    condition = srcFile.path
+    condition = srcFile.filepath
   }
   return (
     <div>
@@ -34,7 +45,7 @@ const StartButton = ({
           <button
             className='btn medium'
             onClick={() => {
-              startProcessing({ type: type })
+              startProcessing({ type: type, targetDirectory: destPath,  filename, })
             }}
           >
             Start {type}

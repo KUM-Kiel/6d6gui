@@ -295,6 +295,8 @@ export class TaskManager {
     const pauser = new Pauser()
     kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, pauser, (percentage: number, progress: string) => {
       this.tasks[id].percentage = percentage
+      this.tasks[id].progress = progress
+      this.update()
     }).then(() => {
       this.tasks[id].actions = ['confirm']
       this.tasks[id].finished = true
@@ -303,8 +305,10 @@ export class TaskManager {
       this.tasks[id].actions = ['confirm']
       this.tasks[id].finished = true
       this.update()
+      console.error(e)
       //this.tasks[id].failed = true
     })
+
     this.actions[id] = action => {
       if (this.tasks[id].finished) {
         if (action === 'confirm') {
@@ -333,10 +337,12 @@ export class TaskManager {
       description: data.srcPath6d6 + ' + ' + data.srcPathShotfile + ' -> ' + data.targetLocation,
       progress: '',
       percentage: 0,
-      eta: null,
+      eta: '/',
       finished: false,
       actions:  [pauser.paused ? 'continue' : 'pause', 'cancel']
     }
+    console.log("data stuff incoming spawnProcess: ", data)
+    console.log(this.tasks[id])
   }
 }
 

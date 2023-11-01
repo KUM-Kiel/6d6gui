@@ -17,8 +17,6 @@ export interface FileErrorData {
 
 let mainWindow: any
 
-console.log(fs.readFileSync(path.join(__dirname, 'preload.js'), 'utf-8'))
-
 // Creating an electron window with specified options.
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -33,9 +31,10 @@ function createWindow() {
 
   //old: mainWindow.loadURL(startURL)
   if (app.isPackaged) {
-    mainWindow.loadFile('index.html'); // prod
+    mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html')); // prod
   } else {
-    mainWindow.loadURL('http://localhost:3000'); // dev
+    // mainWindow.loadURL('http://localhost:3000'); // dev
+    mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
   }
 
   // Toggles the menuBar & avaiability of the devtools.
@@ -64,7 +63,6 @@ app.on('window-all-closed', () => {
 // Checks for the existence of the 6d6compat on the local device.
 const checkForBinaries = () => {
   // Worth a thought to deliver the binaries with the ui instead of checking for them on the system.
-  //return child_process.execSync('6d6mseed') !== ''
   return fs.existsSync('/usr/local/bin/6d6info')
 }
 
@@ -113,20 +111,16 @@ ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
   return result.filePaths
 })
 
-
-ipcMain.handle('6d6info', async (event, filepath) => {
+ipcMain.handle('6d6info', async (event, filepath: string) => {
   if (process.platform === 'win32') {
     let r = await Kum6D6.open(filepath)
-
     if (r === null) return null
-
-    return {info: r.infoJson(),path: filepath, base: path.basename(filepath), ext: path.extname(filepath)}
+    return { info: r.infoJson(), filepath: filepath, base: path.basename(filepath), ext: path.extname(filepath), directoryPath: path.dirname(filepath) }
   } else {
     const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
     const r = await execFileAsync(command, ['--json', filepath])
     const result = JSON.parse(r.stdout)
-
-    return {info: result,path: filepath, ext: path.extname(filepath), base: path.basename(filepath)}
+    return { info: result, filepath: filepath, ext: path.extname(filepath), base: path.basename(filepath), directoryPath: path.dirname(filepath) }
   }
 })
 
@@ -141,47 +135,47 @@ const taskManager = new TaskManager(tasks => {
 })
 
 export interface CopyData {
-  type: string,
-  source: string,
-  targetFilename: string,
-  destPath: string
+  type: 'copy',
+  srcPath: string,
+  targetDirectory: string
+  filenameCopy: string,
 }
 
 // Handling the UI request for a 6d6Copy command.
-ipcMain.on('6d6copy', (event: any, data: CopyData) => {
-  let tempPath = path.join(data.destPath, data.targetFilename)
+ipcMain.handle('6d6copy', (event: any, data: CopyData) => {
+  let tempPath = path.join(data.targetDirectory, data.filenameCopy)
   if (!checkForFileExistence(tempPath)) {
     taskManager.$6d6copy(
-      data.source,
-      data.destPath,
-      data.targetFilename,
+      data.srcPath,
+      data.targetDirectory,
+      data.filenameCopy,
       binariesInstalled
     )
   } else {
     event.reply('file-error', {
+      error: true,
       type: '6d6copy',
       message: 'The file already exists.'
     })
   }
 })
 
-
 export interface ReadData {
-  type: string,
+  type: 'read',
   srcPath: string,
-  srcFilename: string,
   targetDirectory: string,
-  destFilename: string
+  filenameRead: string
 }
 
 // Handling the UI request for a 6d6Read command.
-ipcMain.on('6d6read', async (event: any, data: ReadData) => {
-  const from = path.join(data.srcPath, data.srcFilename)
-  const to = path.join(data.targetDirectory, data.destFilename)
+ipcMain.handle('6d6read', async (event: any, data: ReadData) => {
+  const from = data.srcPath
+  const to = path.join(data.targetDirectory, data.filenameRead)
   if (!checkForFileExistence(to)) {
     taskManager.$6d6read(from, to, binariesInstalled)
   } else {
     event.reply('file-error', {
+      error: true,
       type: '6d6read',
       message: 'The file already exists.'
     })
@@ -189,9 +183,8 @@ ipcMain.on('6d6read', async (event: any, data: ReadData) => {
 })
 
 export interface MSeedData {
-  type: string,
-  srcPath: string,
-  srcFilename: string,
+  type: 'mseed',
+  srcFilepath: string,
   destPath: string,
   station: string,
   location: string,
@@ -207,35 +200,47 @@ export interface MSeedData {
   startTime: string,
   endDate: string,
   endTime: string,
-  timeChoice: 'none'| 'both'| 'start'| 'end'
+  timeChoice: 'none' | 'both' | 'start' | 'end'
 }
 
-
 // Handling the UI request for a 6d6MSeed command.
-ipcMain.on('6d6mseed', (event: any, data: MSeedData) => {
-  console.log(data)
-  let tempPath = path.join(data.srcPath, data.srcFilename)
-
-  // the relevant path is build otherwise and can't be hardcoded!!!
-
-  if (!checkForFileExistence(path.join(tempPath, 'out', data.station))) {
-    taskManager.$6d6mseed(data, tempPath, binariesInstalled)
-  } else {
-    event.reply('file-error', {
+ipcMain.handle('6d6mseed', (event: any, data: MSeedData) => {
+  if (!checkForFileExistence(path.join(data.srcFilepath, 'out', data.station))) {
+    return {
+      error: true,
       type: '6d6mseed',
       message: 'The station folder already exists.'
-    })
+    }
+  } else {
+    taskManager.$6d6mseed(data, data.srcFilepath, binariesInstalled)
   }
 })
 
 export interface SegyData {
-  type: string,
+  type: 'segy',
+  traceDuration: number,
   filenameSegy: string,
   srcPath6d6: string,
   srcPathShotfile: string,
   targetLocation: string,
 }
 
-ipcMain.on('6d6segy', (event: any, data: SegyData) => {
+ipcMain.handle('6d6segy', async (event: any, data: SegyData) => {
+  /* console.log(data) */
 
-}
+  let tempPath = path.join(data.targetLocation, data.filenameSegy)
+
+  console.log("Here's the tempPath: ", tempPath)
+  console.log("Here's the fileExistence result22: ", await checkForFileExistence(tempPath))
+
+  if (await checkForFileExistence(tempPath)) {
+    return {
+      error: true,
+      type: '6d6segy',
+      message: 'The SEG-Y files already exist.'
+    }
+  } else {
+    taskManager.$6d6segy(data)
+    return 'läuft!'
+  }
+})

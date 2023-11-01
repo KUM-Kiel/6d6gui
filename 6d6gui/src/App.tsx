@@ -25,8 +25,8 @@ declare global {
       getDevices: () => Promise<Device[] | null>,
       chooseFile: (name: string, extensions: string[]) => Promise<string[] | null>,
       chooseDirectory: (name: string, extensions: string[]) => Promise<string[] | null>,
-      get6d6Info: (filename: string) => Promise<{ info: InfoJson, path: string, base: string, ext: string }>,
-      triggerConversion: (data: MSeedData | ReadData | CopyData | SegyData, type: string) => Promise<void>,
+      get6d6Info: (filename: string) => Promise<{ info: InfoJson, filepath: string, base: string, ext: string, directoryPath: string }>,
+      triggerConversion: (data: MSeedData | ReadData | CopyData | SegyData) => Promise<void>,
       taskAction: (id: string, action: string) => Promise<void>
     }
   }
@@ -38,10 +38,10 @@ export interface Actions {
   chooseTargetDirectory: () => Promise<void>
 }
 
-export interface srcFileObj {
-  path: string,
-  base: string,
-  ext: string
+export interface fileObj {
+  filepath: string,
+  file: string,
+  ext: string,
 }
 
 export interface MenuElement {
@@ -61,7 +61,7 @@ export default function App() {
   const [taskList, setTaskList] = useState<Task[]>([])
 
   const [d6Info, set6d6Info] = useState<InfoJson | null>(null)
-  const [srcFile, setSrcFile] = useState<srcFileObj>({ path: '', base: '', ext: '' })
+  const [srcFile, setSrcFile] = useState<fileObj>({ filepath: '', file: '', ext: ''})
   const [shotfile, setShotfile] = useState<string>('')
   const [filename, setFilename] = useValidatedState<string>('', filenameCheck(1, 100))
   const [fileChoice, setFileChoice] = useState<string | null>(null)
@@ -80,7 +80,7 @@ export default function App() {
   // Returns the drives/directories useable for 6d6copy.
   const getDeviceInfo = (selected: Device) => {
     if (d6Info === null) return null
-    if (fileChoice === null && srcFile.path !== '') {
+    if (fileChoice === null && srcFile.filepath !== '') {
       return extDevices
     } else {
       for (let i = 0; i < directories.length; ++i) {
@@ -97,13 +97,13 @@ export default function App() {
     let res = await window.ipcRenderer.get6d6Info(filepath)
     if (res === null) return null
     setSrcFile({
-      path: res.path,
-      base: res.base,
-      ext: res.ext
+      filepath: res.filepath,
+      file: res.base,
+      ext: res.ext,
     })
     setFileChoice(null)
     // Default setting
-    if (targetDirectory === '' || !targetDirectoryFlag) setTargetDirectory(res.path)
+    if (targetDirectory === '' || !targetDirectoryFlag) setTargetDirectory(res.directoryPath)
     targetDirectoryFlag = true
     set6d6Info(res.info)
   }
@@ -134,8 +134,9 @@ export default function App() {
     console.log(actionTriggered)
   }
 
-  const triggerConversion = async (data: MSeedData | ReadData | CopyData | SegyData): Promise<string>  => {
-    let temp = await window.ipcRenderer.triggerConversion()
+  const triggerConversion = async (data: MSeedData | ReadData | CopyData | SegyData): Promise<void> => {
+    let temp = await window.ipcRenderer.triggerConversion(data)
+    // How about throwing a dialog-window to display the error?
     console.log(temp)
   }
 
@@ -153,7 +154,9 @@ export default function App() {
     // For already used filenames etc.
     window.ipcRenderer.on('file-error', (e: Event, data: FileErrorData) => {
       if (data.type === '6d6copy') {
+        console.log(data)
       } else if (data.type === '6d6read') {
+        console.log(data)
       } else if (data.type === '6d6mseed') {
         console.log('The process was cancled due to already existing files.')
       }

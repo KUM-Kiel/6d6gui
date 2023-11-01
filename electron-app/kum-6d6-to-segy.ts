@@ -10,16 +10,14 @@ import { Pauser } from './pauser'
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
 
 // generate seg-y files
-export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, pauser: Pauser, /* traceLength: number, */ onUpdate: (percentage: number, progress: string) => void) => {
+export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, pauser: Pauser, /* traceDuration: number, */ onUpdate: (percentage: number, progress: string) => void) => {
   const file = await Kum6D6.open(location6d6)
   // tracelength: time * sampleRate, settable by user
   // tracelength "30" shall be set dynamically by the user in the future.
   const traceLength = 30 * file.header.sampleRate
   const channels = file.header.channels
-  //console.log('Channels found are: ', channels)
   const segyFiles: SegyWriter[] = []
-  /*   const destFile = fswrite(locationTarget, ' ', 0) // ??? */
-  await fs.mkdir('SegyFiles', { recursive: true })
+
   for (let i = 0; i < channels.length; ++i) {
     segyFiles[i] = await SegyWriter.create(path.join(locationTarget, filenameSegy + '-' + channels[i].name + '.segy'))
     await segyFiles[i].writeHeader(file.header, traceLength)
@@ -65,7 +63,7 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
           for (let i = 0; i < samples.length; ++i) {
             await segyFiles[i].writeSample(samples[i])
           }
-        },
+        }/*,
         onTimeStamp: (s, us) => {
           //console.log([s, us])
         },
@@ -83,15 +81,9 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
         },
         onRebootIndicator: (t, v) => {
           console.log('Rebootet at: ' + t + ' with: ' + v + 'V')
-        }
+        }*/
       })) throw new Error('File too short')
       await pauser.whilePaused()
-
-      // write fake samples for testing
-      /*sampleFrames += 1
-       for (let i = 0; i < segyFiles.length; ++i) {
-        await segyFiles[i].writeSample(Math.round(1e6 * rnd()))
-      }*/
     }
     console.log({done:i})
   }
@@ -100,22 +92,5 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
   }
   onUpdate(100, shotFile.length + '/' + shotFile.length + ' shots processed')
 }
-
-const createSegyFile = async (segyData: number, destinationTarget: string): Promise<void> => {
-}
-
-export const createSegyFiles = async (location6d6: string, locationShotfile: string, locationTarget: string, filenameSegy: string ) => {}
-
-/*   await kum6D6ToSegy(location6d6, locationTarget, locationShotfile, filenameSegy)
-}
-
-async function test() {
-  await kum6D6ToSegy('../obs114.6d6', 'segy', '../shotfile.p01a.dat', 'testSegyFile')
-}
-
-test().catch(e => {
-  console.error(e)
-})
-*/
 
 export default kum6D6ToSegy

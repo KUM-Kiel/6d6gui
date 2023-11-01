@@ -2,14 +2,15 @@ import useValidatedState, { alphaNumericCheck } from '../validation'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import React, { ChangeEventHandler, useState } from 'react'
 import TextInput from './TextInput'
-import { Actions, srcFileObj } from '../App'
+import { Actions, fileObj } from '../App'
+import { MSeedData } from '../../../electron-app/main'
 
 type MSeedProps = {
   actions: Actions,
   destPath: string,
   d6Info: InfoJson | null,
-  srcFile: srcFileObj,
-  startProcessing: Function,
+  srcFile: fileObj,
+  startProcessing: (data: MSeedData) => void,
   setHighlightTime: Function,
 }
 const standardTemplate = 'out/%S/%y-%m-%d-%C'
@@ -157,7 +158,7 @@ const MSeed = ({
       >
         Choose File
       </button>
-      {srcFile.path !== '' && (
+      {srcFile.filepath !== '' && (
         <button
           className='btn medium'
           onClick={actions.chooseTargetDirectory}
@@ -166,10 +167,10 @@ const MSeed = ({
         </button>
       )}
       <br />
-      <div className={`${srcFile.path === '' ? 'hidden' : 'shown'}`}>
+      <div className={`${srcFile.filepath === '' ? 'hidden' : 'shown'}`}>
         <p>
           Set up to convert from
-          <span className='read-text-hightlight'> {srcFile.base} </span>
+          <span className='read-text-hightlight'> {srcFile.file} </span>
           to
         </p>
         <div className='input out-template-path'>
@@ -295,7 +296,7 @@ const MSeed = ({
               Time constraints?
               <select value={timeChoice} onChange={handleDropdownChange}>
                 {dropDownOptions.map(option => (
-                  <option value={option.value}>{option.label}</option>
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </label>
@@ -378,17 +379,18 @@ const MSeed = ({
               onClick={() => {
                 startProcessing({
                   type: 'mseed',
+                  srcFilepath: srcFile.filepath,
+                  destPath: destPath,
                   station: station.value,
                   location: location.value,
                   network: network.value,
                   channels: channels.value,
                   template: outputTemplate.value + '.mseed',
-                  destPath: destPath,
+                  logfile: true,
+                  auxfile: true,
                   resample: resample,
                   ignoreSkew: ignoreSkew,
                   cut: noCut ? 0 : cut.value,
-                  logfile: true,
-                  auxfile: true,
                   startDate: startDate,
                   startTime: startTime,
                   endDate: endDate,

@@ -4,7 +4,7 @@ import React from "react"
 
 type TaskProps = {
   task: Task,
-  activateAction: Function,
+  activateAction: (id: string, action: string) => void,
   darkMode: boolean
 }
 
@@ -31,7 +31,7 @@ const TaskContainer = ({ task, activateAction, darkMode }: TaskProps) => {
         </div>
         <div>
           {task.actions.map(action => (
-            <div>
+            <div key={action}>
               <IconButton activateAction={activateAction} taskId={task.id} action={action} darkMode={darkMode} />
             </div>
           ))}

@@ -1,6 +1,6 @@
 import { MSeedData, ReadData, CopyData, SegyData } from '../../../electron-app/main'
 import { ValidatedValue } from '../validation'
-import { Actions, srcFileObj } from '../App'
+import { Actions, fileObj } from '../App'
 import MSeed from './MSeed'
 import React from "react"
 import Copy from './Copy'
@@ -19,7 +19,7 @@ type ContentProps = {
   filename: ValidatedValue<string>,
   triggerConversion: Function,
   d6Info: InfoJson | null,
-  srcFile: srcFileObj,
+  srcFile: fileObj,
   shotfile: string
 }
 
