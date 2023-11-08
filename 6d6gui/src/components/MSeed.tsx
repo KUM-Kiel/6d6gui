@@ -90,7 +90,7 @@ const MSeed = ({
   const [noCut, setNoCut] = useState<boolean>(false)
   const [resample, setResample] = useState<boolean>(false)
   const [ignoreSkew, setIgnoreSkew] = useState<boolean>(false)
-  const [timeChoice, setTimeChoice] = useState('none')
+  const [timeChoice, setTimeChoice] = useState<'none' | 'both' | 'start' | 'end'>('none')
   const [cut, setCut] = useValidatedState('86400', cutCheck(7))
   const [station, setStation] = useValidatedState('', alphaNumericCheck(1, 5))
   const [network, setNetwork] = useValidatedState('', alphaNumericCheck(0, 2))
@@ -125,8 +125,15 @@ const MSeed = ({
     setChannels('')
   }
 
+  const validateTimeChoice = (choice: string): ('none' | 'both' | 'start' | 'end') => {
+    if (choice === 'both') return 'both'
+    if (choice === 'start') return 'start'
+    if (choice === 'end') return 'end'
+    return 'none'
+  }
+
   const handleDropdownChange: ChangeEventHandler<HTMLSelectElement> = e => {
-    setTimeChoice(e.target.value)
+    setTimeChoice(validateTimeChoice(e.target.value))
     setHighlightTime(e.target.value)
   }
 
@@ -384,13 +391,13 @@ const MSeed = ({
                   station: station.value,
                   location: location.value,
                   network: network.value,
-                  channels: channels.value,
+                  channels: channels.value.split(','),
                   template: outputTemplate.value + '.mseed',
                   logfile: true,
                   auxfile: true,
                   resample: resample,
                   ignoreSkew: ignoreSkew,
-                  cut: noCut ? 0 : cut.value,
+                  cut: noCut ? 0 : +cut.value,
                   startDate: startDate,
                   startTime: startTime,
                   endDate: endDate,

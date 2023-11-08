@@ -29,7 +29,7 @@ const StartButton = ({
   fileChoice,
 
 }: StartButtonProps) => {
-  let condition : string
+ /*  let condition : string
 
   if (type === 'copy') {
     condition = destPath
@@ -45,7 +45,7 @@ const StartButton = ({
           <button
             className='btn medium'
             onClick={() => {
-              startProcessing({ type: type, targetDirectory: destPath,  filename, })
+              startProcessing({ targetDirectory: destPath,  filename, })
             }}
           >
             Start {type}
@@ -59,6 +59,6 @@ const StartButton = ({
                 </p>
               )))))}
     </div>
-  )
+  ) */
 }
 export default StartButton

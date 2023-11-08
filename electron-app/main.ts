@@ -29,12 +29,13 @@ function createWindow() {
     }
   })
 
-  //old: mainWindow.loadURL(startURL)
+  // old: mainWindow.loadURL(startURL)
+  // TODO: fixup
   if (app.isPackaged) {
     mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html')); // prod
   } else {
-    // mainWindow.loadURL('http://localhost:3000'); // dev
-    mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
+    mainWindow.loadURL('http://localhost:3000'); // dev
+    //mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
   }
 
   // Toggles the menuBar & avaiability of the devtools.
@@ -62,7 +63,7 @@ app.on('window-all-closed', () => {
 
 // Checks for the existence of the 6d6compat on the local device.
 const checkForBinaries = () => {
-  // Worth a thought to deliver the binaries with the ui instead of checking for them on the system.
+  // for Linux: Worth a thought to deliver the binaries with the ui instead of checking for them on the system.
   return fs.existsSync('/usr/local/bin/6d6info')
 }
 

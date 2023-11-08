@@ -1,7 +1,6 @@
 // Main Content for the use of 6D6Copy.
 
 import { useValidatedState, numericCheck, ValidatedValue } from '../validation'
-import StartButton from './StartButton'
 import TextInput from './TextInput'
 import { Actions, fileObj } from '../App'
 import React from 'react'
@@ -16,7 +15,7 @@ type SegyProps = {
   setFilename: (value: string) => void
   startProcessing: (data: SegyData) => void,
   d6Info: InfoJson | null,
-  shotfile: string
+  shotfile: string,
 }
 
 // The view for the use of 6d6Copy.
@@ -60,7 +59,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
         >
           Choose Output Location
         </button>
-        {shotfile !== '' && (
+        {destPath !== '' && (
           <div>
             <p><b>Output direction:</b></p>
             <p>{destPath}</p>
@@ -83,16 +82,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
           changeFunction={setTraceDuration}
           placeholder={'Duration of a Trace'}
         />
-        {/* <StartButton
-          startProcessing={startProcessing}
-          type={'segy'}
-          filename={filename}
-
-          destPath={destPath}
-          srcFile={srcFile}
-          srcPathShotfile={shotfile}
-        /> */}
-        <button
+        {shotfile !== '' && d6Info !== null && <button
           type="submit"
           className="btn medium confirmation"
           onClick={() => {
@@ -102,11 +92,11 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
               traceDuration: +traceDuration.value,
               srcPath6d6: srcFile.filepath,
               srcPathShotfile: shotfile,
-              targetLocation: destPath
+              targetLocation: destPath,
             })
           }}>
           Convert
-        </button>
+        </button>}
       </div>)}
     </div >
   )

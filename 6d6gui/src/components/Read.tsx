@@ -66,14 +66,6 @@ export const Read = ({
           </p>
         </div>
         <br />
-        {/*  <StartButton
-          filename={filename}
-          type={'read'}
-          srcFile={srcFile}
-        //   d6Info={d6Info}
-          destPath = { destPath }
-          startProcessing={startProcessing}
-        /> */}
         <button
           type="submit"
           className="btn medium confirmation"

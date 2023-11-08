@@ -293,7 +293,7 @@ export class TaskManager {
   $6d6segy (data: SegyData) {
     const id = this.getId()
     const pauser = new Pauser()
-    kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, pauser, (percentage: number, progress: string) => {
+    kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, data.traceDuration, pauser, (percentage: number, progress: string) => {
       this.tasks[id].percentage = percentage
       this.tasks[id].progress = progress
       this.update()

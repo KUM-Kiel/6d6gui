@@ -10,11 +10,11 @@ import { Pauser } from './pauser'
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
 
 // generate seg-y files
-export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, pauser: Pauser, /* traceDuration: number, */ onUpdate: (percentage: number, progress: string) => void) => {
+export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, traceDuration: number,pauser: Pauser,   onUpdate: (percentage: number, progress: string) => void) => {
   const file = await Kum6D6.open(location6d6)
-  // tracelength: time * sampleRate, settable by user
-  // tracelength "30" shall be set dynamically by the user in the future.
-  const traceLength = 30 * file.header.sampleRate
+
+  // tracelength: traceDuration * sampleRate, settable by user
+  const traceLength = traceDuration * file.header.sampleRate
   const channels = file.header.channels
   const segyFiles: SegyWriter[] = []
 
@@ -41,7 +41,8 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
         traceSequenceNumWithinLine: i + 1,
         sampleIntervalForTrace: Math.round(1e6 / file.header.sampleRate),
         scalarCoordinatesSpecified: -100,
-        // Conversion of 'decimal degrees' to 'seconds of arc'
+        // Conversion of 'decimal degrees' to 'seconds of arc'.
+        // WGS84 coordinates are used here.
         srcCoordinateX: Math.round(shot.lon * 60 * 60 * 100),
         srcCoordinateY: Math.round(shot.lat * 60 * 60 * 100),
         coordinatesUnits: 'seconds-of-arc',

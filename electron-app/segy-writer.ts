@@ -272,12 +272,17 @@ export class SegyWriter  {
 
     segyHeader.setInt32(0, fields.traceSequenceNumWithinLine)
     segyHeader.setInt32(4, fields.traceSequenceNumWithinFile)
-    segyHeader.setInt32(8, fields.ogFieldRecordNum || 0)
-    segyHeader.setInt32(12, fields.traceNumOgFieldRecord || 0) // ?
-    segyHeader.setInt32(16, fields.energySourcePointNumber || 0)
-    segyHeader.setInt32(20, fields.ensembleNumber || 0)
+    segyHeader.setInt32(8, fields.ogFieldRecordNum || 1)
+    segyHeader.setInt32(12, fields.traceNumOgFieldRecord || 0)
+    // Because this software will mostly be used for see-use, the following
+    // values will be set to the same value as the sequence number within a line.
+    // -> only used for refraction-seismics
+    // segyHeader.setInt32(16, fields.energySourcePointNumber || 0)
+    segyHeader.setInt32(16, fields.traceSequenceNumWithinLine || 0)
+    // segyHeader.setInt32(20, fields.ensembleNumber || 0)
+    segyHeader.setInt32(20, fields.traceSequenceNumWithinLine || 0)
     segyHeader.setInt32(24, fields.traceNumWithinEnsemble || 0)
-    segyHeader.setInt16(28, fields.traceIdentificationCode || 0)
+    segyHeader.setInt16(28, fields.traceIdentificationCode || 1)
     // change default 0 to 1 for vert. & horz. :
     segyHeader.setInt16(30, fields.numVerticalSummedTraces || 1)
     segyHeader.setInt16(32, fields.numHorizontalStackedTraces || 1)
@@ -288,15 +293,15 @@ export class SegyWriter  {
     segyHeader.setInt32(36, fields.distCenterSrcToCenterReceiver || 0)
     segyHeader.setInt32(40, fields.elevationReceiverGroup || 0)
     segyHeader.setInt32(44, fields.surfaceElevationSrcLocation || 0)
-    segyHeader.setInt32(48, fields.srcDepthBelowSurface || 0)
+    segyHeader.setInt32(48, fields.srcDepthBelowSurface || 0) // user input!!
     segyHeader.setInt32(52, fields.seismicDatumElevationReciever || 0)
     segyHeader.setInt32(56, fields.seismicDatumElevationSource || 0)
     segyHeader.setInt32(60, fields.waterColHeightSrcLocation || 0)
     segyHeader.setInt32(64, fields.waterColHeightReceiverLocation || 0)
-    segyHeader.setInt16(68, fields.scalarElevationsDepthsSpec || 0)
-    segyHeader.setInt16(70, fields.scalarCoordinatesSpecified || 0)
-    segyHeader.setInt32(72, fields.srcCoordinateX || 0)
-    segyHeader.setInt32(76, fields.srcCoordinateY || 0)
+    segyHeader.setInt16(68, fields.scalarElevationsDepthsSpec || 1)
+    segyHeader.setInt16(70, fields.scalarCoordinatesSpecified)
+    segyHeader.setInt32(72, fields.srcCoordinateX)
+    segyHeader.setInt32(76, fields.srcCoordinateY)
     segyHeader.setInt32(80, fields.groupCoordinateX || 0)
     segyHeader.setInt32(84, fields.groupCoordinateY || 0)
     segyHeader.setInt16(88, {
@@ -304,30 +309,30 @@ export class SegyWriter  {
       'seconds-of-arc': 2,
       'decimal-degrees': 3,
       'degrees-minutes-seconds': 4
-    }[fields.coordinatesUnits || 'decimal-degrees'])
+    }[fields.coordinatesUnits])
     segyHeader.setInt16(90, fields.wheatheringVelocity || 0)
     segyHeader.setInt16(92, fields.subwheatheringVelocity || 0)
     segyHeader.setInt16(94, fields.upholeTimeSrcInMs || 0)
     segyHeader.setInt16(96, fields.upholeTimeGroupInMs || 0)
     segyHeader.setInt16(98, fields.srcStaticCorrectionMs || 0)
-    segyHeader.setInt16(100, fields.groupStaticCorrectionMs || 0)
+    segyHeader.setInt16(100, fields.groupStaticCorrectionMs || 0) // user input ?!
     segyHeader.setInt16(102, fields.totalStaticAppliedMs || 0)
     segyHeader.setInt16(104, fields.lagTimeA || 0)
     segyHeader.setInt16(106, fields.lagTimeB || 0)
     segyHeader.setInt16(108, fields.delayRecordingTime || 0)
     segyHeader.setInt16(110, fields.muteTimeStartMs || 0)
-    segyHeader.setInt16(112, fields.muteTimeEndMs || 0)
-    segyHeader.setInt16(114, fields.numSamplesInThisTrace || 0)
-    segyHeader.setInt16(116, fields.sampleIntervalForTrace || 0)
+    segyHeader.setInt16(112, fields.muteTimeEndMs || 1000)
+    segyHeader.setInt16(114, fields.numSamplesInThisTrace)
+    segyHeader.setInt16(116, fields.sampleIntervalForTrace)
     segyHeader.setInt16(118, {
       'fixed': 1,
       'binary': 2,
       'floating-point': 3,
       'other': 4
-    }[fields.gainTypeFieldInstruments || 'other'])
-    segyHeader.setInt16(120, fields.instrumentGainContantDb || 0)
-    segyHeader.setInt16(122, fields.instrumentEarlyInitGainDb || 0)
-    segyHeader.setInt16(124, fields.correlated ? 2 : 1 || 0)
+    }[fields.gainTypeFieldInstruments || 'fixed'])
+    segyHeader.setInt16(120, fields.instrumentGainContantDb || 1)
+    segyHeader.setInt16(122, fields.instrumentEarlyInitGainDb || 1)
+    segyHeader.setInt16(124, fields.correlated ? 2 : 1 || 1)
     segyHeader.setInt16(126, fields.sweepFreqStart || 0)
     segyHeader.setInt16(128, fields.sweepFreqEnd || 0)
     segyHeader.setInt16(130, fields.sweepLengthMs || 0)
@@ -336,14 +341,14 @@ export class SegyWriter  {
       'parabolic': 2,
       'exponential': 3,
       'other': 4
-    }[fields.sweepType || 'other'])
+    }[fields.sweepType || 'linear'])
     segyHeader.setInt16(134, fields.sweepTraceTaperLengthStart || 0)
     segyHeader.setInt16(136, fields.sweepTraceTaperLengthEnd || 0)
     segyHeader.setInt16(138, {
       'linear': 1,
       'cos2': 2,
       'other': 3
-    }[fields.taperType || 'other'])
+    }[fields.taperType || 'linear'])
     segyHeader.setInt16(140, fields.aliasFilterFreq || 0)
     segyHeader.setInt16(142, fields.aliasFilterSlope || 0)
     segyHeader.setInt16(144, fields.notchFilterFreq || 0)
@@ -352,21 +357,21 @@ export class SegyWriter  {
     segyHeader.setInt16(150, fields.highCutFreq || 0)
     segyHeader.setInt16(152, fields.lowCutSlope || 0)
     segyHeader.setInt16(154, fields.highCutSlope || 0)
-    segyHeader.setInt16(156, fields.yearDataRecorded || 0)
-    segyHeader.setInt16(158, fields.dayOfYear || 0)
-    segyHeader.setInt16(160, fields.hourOfDay || 0)
-    segyHeader.setInt16(162, fields.minuteOfHour || 0)
-    segyHeader.setInt16(164, fields.secondOfMinute || 0)
+    segyHeader.setInt16(156, fields.yearDataRecorded)
+    segyHeader.setInt16(158, fields.dayOfYear) // julian day
+    segyHeader.setInt16(160, fields.hourOfDay)
+    segyHeader.setInt16(162, fields.minuteOfHour)
+    segyHeader.setInt16(164, fields.secondOfMinute)
     segyHeader.setInt16(166, {
       'local': 1,
       'gmt': 2,
       'other': 3,
       'utc': 4,
-      'gps': 5 }[fields.timeBasisCode || 'gmt'])
+      'gps': 5 }[fields.timeBasisCode]) // why Other?!?!
     segyHeader.setInt16(168, fields.traceWeightingFactor || 0)
     segyHeader.setInt16(170, fields.geophoneGroupNumRollSwitchOne || 0)
-    segyHeader.setInt16(172, fields.geophoneGroupNumtraceNumOne || 0)
-    segyHeader.setInt16(174, fields.geophoneGroupNumLastTrace || 0)
+    segyHeader.setInt16(172, fields.geophoneGroupNumtraceNumOne || 1)
+    segyHeader.setInt16(174, fields.geophoneGroupNumLastTrace || 1)
     segyHeader.setInt16(176, fields.gapSize || 0)
     segyHeader.setInt16(178, {
       'unknown': 0,
@@ -377,7 +382,7 @@ export class SegyWriter  {
     segyHeader.setInt32(184, fields.yCoordinateEnsemble || 0)
     segyHeader.setInt32(188, fields.inLineNumberPoststackData || 0)
     segyHeader.setInt32(192, fields.crossLineNumberPoststackData || 0)
-    segyHeader.setInt32(196, fields.shotpointNumber || 0)
+    segyHeader.setInt32(196, fields.shotpointNumber)
     segyHeader.setInt16(200, fields.scalarForShotpointNumber || 0)
     segyHeader.setInt16(202, {
       'other': -1,
@@ -407,7 +412,7 @@ export class SegyWriter  {
       'watt': 9
     }[fields.transductionUnits || 'unknown'])
     segyHeader.setInt16(212, fields.deviceTraceIdentifier || 0)
-    segyHeader.setInt16(214, fields.scalarAppliedToTimes || 0)
+    segyHeader.setInt16(214, fields.scalarAppliedToTimes || -1)
     segyHeader.setInt16(216, {
       'unknown': 0,
       'vibratory-vertical': 1,
@@ -426,6 +431,8 @@ export class SegyWriter  {
     segyHeader.setInt32(224, fields.sourceMeasurementMantissa || 0)
     segyHeader.setInt16(228, fields.sourceMeasurementPowerTenExponent || 0)
     segyHeader.setInt16(230, fields.sourceMeasurementUnit || 0)
+
+    // Bytes 233-240 don't need to be initialized - they're already filled with the value 'zero'.
 
     return bytes
   }
