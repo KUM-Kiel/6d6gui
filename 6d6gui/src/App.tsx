@@ -148,7 +148,7 @@ export default function App() {
     keepTheme()
 
     // Recieving task list updates & changing the TaskManager accordingly.
-    window.ipcRenderer.on('tasks', (e: Event, data: Task[]) => {
+     window.ipcRenderer.on('tasks', (e: Event, data: Task[]) => {
       setTaskList(data)
     })
     // For already used filenames etc.

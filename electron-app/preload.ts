@@ -3,7 +3,6 @@ import { Device } from './6d6watcher'
 import { InfoJson } from './kum-6d6'
 import { CopyData, MSeedData, ReadData, SegyData } from './main'
 
-
 type eventCallback = (event: any, ...data: any[]) => void
 
 contextBridge.exposeInMainWorld('ipcRenderer', {

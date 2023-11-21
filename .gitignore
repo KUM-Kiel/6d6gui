@@ -2,6 +2,8 @@
 node_modules/
 build/
 dist/
+6d6gui-out
+electron.zip
 
 # Seismic Data
 *.6d6

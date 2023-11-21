@@ -152,14 +152,15 @@ export class SegyWriter  {
   fd: number | null
   buffer: Uint8Array
   bufferPosition: number
-  //pointer: number = 0
-
-  // Ab hier wird rumprobiert
+  sampleBytes: Uint8Array
+  sampleView: DataView
 
   constructor(fd: number) {
     this.fd = fd
     this.buffer = new Uint8Array(1024 * 1024)
     this.bufferPosition = 0
+    this.sampleBytes = new Uint8Array(4)
+    this.sampleView = new DataView(this.sampleBytes.buffer)
     console.log(this.fd)
     console.log(typeof this.fd)
   }
@@ -438,10 +439,8 @@ export class SegyWriter  {
   }
 
   async writeSample(data: number) {
-    let bytes: Uint8Array = new Uint8Array(4)
-    let view: DataView = new DataView(bytes.buffer)
-    view.setInt32(0, data)
-    return this.write(bytes)
+    this.sampleView.setInt32(0, data)
+    return this.write(this.sampleBytes)
   }
 
   static async create(filepath: string): Promise<SegyWriter> {

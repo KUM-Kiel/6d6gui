@@ -22,8 +22,8 @@ export class File {
     await this.fd.close()
   }
 
-  async read(position: number, bytes: number): Promise<DataView> {
-    let data = new Uint8Array(bytes)
+  async read(position: number, data: DataView): Promise<number> {
+    let bytes = data.byteLength
     let read = 0
     while (read < bytes) {
       let p = position + read
@@ -35,23 +35,24 @@ export class File {
       }
       if (this.end <= p) {
         // End of file reached, return shorter buffer
-        return new DataView(data.buffer, 0, read)
+        return read
       }
       let count = Math.min(this.end - p, bytes - read)
       let bufferOffset = p - this.start
       for (let i = 0; i < count; ++i) {
-        data[read + i] = this.buffer[bufferOffset + i]
+        data.setUint8(read + i, this.buffer[bufferOffset + i])
       }
       read += count
     }
-    return new DataView(data.buffer)
+    return read
   }
 }
 
 const test = async () => {
   let file = await File.open('test.txt')
-  console.log(await file.read(16, 4))
-  console.log(await file.read(32, 4))
+  let data = new DataView(new ArrayBuffer(4))
+  console.log(await file.read(16, data))
+  console.log(await file.read(32, data))
   await file.close()
 }
 

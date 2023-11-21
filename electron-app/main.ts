@@ -9,6 +9,8 @@ import util from 'util'
 import fs from 'fs'
 
 const execFileAsync = util.promisify(execFile)
+/*
+require('ofe').call() */
 
 export interface FileErrorData {
   type: string,
@@ -25,6 +27,7 @@ function createWindow() {
     show: false,
     webPreferences: {
       nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     }
   })
@@ -116,7 +119,9 @@ ipcMain.handle('6d6info', async (event, filepath: string) => {
   if (process.platform === 'win32') {
     let r = await Kum6D6.open(filepath)
     if (r === null) return null
-    return { info: r.infoJson(), filepath: filepath, base: path.basename(filepath), ext: path.extname(filepath), directoryPath: path.dirname(filepath) }
+    let info = { info: r.infoJson(), filepath: filepath, base: path.basename(filepath), ext: path.extname(filepath), directoryPath: path.dirname(filepath) }
+    await r.close()
+    return info
   } else {
     const command = binariesInstalled ? '6d6info' : './public/bin/6d6info'
     const r = await execFileAsync(command, ['--json', filepath])
