@@ -22,7 +22,8 @@ const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListPr
                   style={{ float: 'left' }}
                   type='radio'
                   onChange={() => {
-                    switchContent(2)
+                    // Switch to 'Copy' Menu, if file from filelist was chosen.
+                    switchContent(3)
                     changeFile(obj.name)
                   }}
                   checked={obj.name === fileChoice}

@@ -16,6 +16,8 @@ type CopyProps = {
   fileChoice: string | null,
 }
 
+// TODO:_ Find why the button is still showing when it's disabled.
+
 // The view for the use of 6d6Copy.
 export const Copy = ({
   fileChoice,

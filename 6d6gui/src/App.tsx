@@ -5,7 +5,7 @@ import { Task } from '../../electron-app/spawnProcess'
 import { InfoJson } from '../../electron-app/kum-6d6'
 import React, { useState, useEffect } from 'react'
 import TaskManager from './components/TaskManager'
-import MenuColumn from './components/MenuColumn'
+import MenuRow from './components/MenuColumn'
 import { keepTheme } from './components/Themes'
 import FileList from './components/FileList'
 import Content from './components/Content'
@@ -45,34 +45,37 @@ export interface fileObj {
 }
 
 export interface MenuElement {
-  id: number,
   title: string,
-  active: boolean
+  show: (os: string, devices: number) => boolean,
 }
 
 export default function App() {
+
+  const [systemOS, setSystemOS] = useState<string>('')
 
   const [appDarkMode, setAppDarkMode] = useState<boolean>(true)
   const [showContent, setShowContent] = useState<number>(0)
   const [highlightTime, setHighlightTime] = useState<string>('none')
 
   const [directories, setDirectories] = useState<Device[]>([])
-  const [extDevices, setExtDevices] = useState<Device | null>(null)
+  const [extDevice, setExtDevice] = useState<Device | null>(null)
   const [taskList, setTaskList] = useState<Task[]>([])
 
   const [d6Info, set6d6Info] = useState<InfoJson | null>(null)
-  const [srcFile, setSrcFile] = useState<fileObj>({ filepath: '', file: '', ext: ''})
+  const [srcFile, setSrcFile] = useState<fileObj>({ filepath: '', file: '', ext: '' })
   const [shotfile, setShotfile] = useState<string>('')
   const [filename, setFilename] = useValidatedState<string>('', filenameCheck(1, 100))
   const [fileChoice, setFileChoice] = useState<string | null>(null)
   const [targetDirectory, setTargetDirectory] = useState<string>('')
 
-  const [menuList] = useState<MenuElement[]>([
-    { id: 0, title: 'MSeed', active: true },
-    { id: 1, title: 'Read', active: false },
-    { id: 2, title: 'SEG-Y', active: false },
-    { id: 3, title: 'Copy', active: false },
-  ])
+  // If something has to be changed in 'menuList', keep 'switchContent' & Content.tsx in mind.
+  const [activeMenuItem, setActiveMenuItem] = useState<number>(0)
+  const menuList: MenuElement[] = [
+    { title: 'SEG-Y', show: (os, devices) => true },
+    { title: 'MSeed', show: (os, devices) => os !== 'win32' },
+    { title: 'Read', show: (os, devices) => os !== 'win32' },
+    { title: 'Copy', show: (os, devices) => os !== 'win32' && devices > 0 },
+  ]
 
   // After picking a new file, the once manually chosen targetDirectory won't be automatically adapted to the directory pf the src file.
   let targetDirectoryFlag = false
@@ -81,7 +84,7 @@ export default function App() {
   const getDeviceInfo = (selected: Device) => {
     if (d6Info === null) return null
     if (fileChoice === null && srcFile.filepath !== '') {
-      return extDevices
+      return extDevice
     } else {
       for (let i = 0; i < directories.length; ++i) {
         if (directories[i].name === selected.name) {
@@ -117,7 +120,6 @@ export default function App() {
 
   const choose6d6File = async () => {
     let d6File = await window.ipcRenderer.chooseFile('6d6file', ['6d6'])
-    console.log(d6File)
     if (d6File === null) return
     await get6d6Info(d6File[0])
   }
@@ -142,13 +144,15 @@ export default function App() {
 
   // Collection of handlers for incoming information from the backend.
   useEffect(() => {
-    window.ipcRenderer.on('device-list', (e: Event, devices: Device[]) => {
+    window.ipcRenderer.on('device-list', (e: Event, devices: Device[], systemOS?: string) => {
       setDirectories(devices)
+
+      if (systemOS !== undefined) setSystemOS(systemOS)
     })
     keepTheme()
 
     // Recieving task list updates & changing the TaskManager accordingly.
-     window.ipcRenderer.on('tasks', (e: Event, data: Task[]) => {
+    window.ipcRenderer.on('tasks', (e: Event, data: Task[]) => {
       setTaskList(data)
     })
     // For already used filenames etc.
@@ -168,30 +172,27 @@ export default function App() {
   // Function to change the shown main content.
   const switchContent = (id: number) => {
     setFilename('')
-    setShowContent(menuList.filter(item => item.id === id)[0].id)
-    setMenuItemActive(id)
-  }
-
-  // Changes the state of the MenuItems to react to user inputs.
-  const setMenuItemActive = (id: number) => {
-    menuList.forEach(item => (item.active = item.id === id ? true : false))
+    setShowContent(id)
+    setActiveMenuItem(id)
   }
 
   // As soon as something changes regarding a 6d6 device or file, the information about the chosen entity gets updated.
   const triggerInfoChange = (filename: Device) => {
     setFileChoice(filename.name)
-    setExtDevices(getDeviceInfo(filename))
+    setExtDevice(getDeviceInfo(filename))
   }
 
   // Main application - Style to be found in ./App.css
   return (
     <div className='app'>
       <Header title={'K.U.M. 6D6 Suite'} />
-      <MenuColumn
+      <MenuRow
         menu={menuList}
+        activeMenuItem={activeMenuItem}
         directories={directories}
         changeContent={switchContent}
         setAppDarkMode={setAppDarkMode}
+        systemOS={systemOS}
       />
       <div className='app-container'>
         <div className='app-content'>

@@ -1,12 +1,9 @@
-import { readShotFile, Shot } from './shot-file-parser'
+import { readShotFile } from './shot-file-parser'
 import { SegyWriter } from './segy-writer'
 import Kum6D6 from './kum-6d6'
 
 import path from 'path'
-import fs from 'fs/promises'
 import { Pauser } from './pauser'
-
-import v8 from 'v8'
 
 // For testing purposes.
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
@@ -17,7 +14,6 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
   const segyFiles: SegyWriter[] = []
 
   try {
-    // tracelength: traceDuration * sampleRate, settable by user
     const traceLength = traceDuration * file.header.sampleRate
     const channels = file.header.channels
 
@@ -33,7 +29,6 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
     const shotFile = await readShotFile(locationShotFile)
     for (let i = 0; i < shotFile.length; ++i) {
       onUpdate(100 * i / shotFile.length, i + '/' + shotFile.length + ' shots processed')
-      // console.log({start:i})
       // relocate 'write to trace' because of read information from meta-data?
       // such as: timestamp, temperature, voltage humidity?
       const shot = shotFile[i]

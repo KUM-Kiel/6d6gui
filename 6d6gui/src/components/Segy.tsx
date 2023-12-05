@@ -1,11 +1,11 @@
 // Main Content for the use of 6D6Copy.
 
 import { useValidatedState, numericCheck, ValidatedValue } from '../validation'
-import TextInput from './TextInput'
-import { Actions, fileObj } from '../App'
-import React from 'react'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import { SegyData } from '../../../electron-app/main'
+import { Actions, fileObj } from '../App'
+import TextInput from './TextInput'
+import React from 'react'
 
 type SegyProps = {
   srcFile: fileObj
@@ -22,6 +22,7 @@ type SegyProps = {
 export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shotfile, filename, setFilename }: SegyProps) => {
 
   const [traceDuration, setTraceDuration] = useValidatedState('', numericCheck(1, 100000))
+  const [sourceDepth, setSourceDepth] = useValidatedState('', numericCheck(0,10000))
 
   return (
     <div className="segy-main">
@@ -80,7 +81,14 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
           value={traceDuration.value}
           valid={traceDuration.valid}
           changeFunction={setTraceDuration}
-          placeholder={'Duration of a Trace'}
+          placeholder={'Duration of a Trace in Seconds'}
+        />
+        <br/>
+        <TextInput
+          value={sourceDepth.value}
+          valid={sourceDepth.valid}
+          changeFunction={setSourceDepth}
+          placeholder={'Set Depth of the shot-source'}
         />
         {shotfile !== '' && d6Info !== null && <button
           type="submit"
@@ -97,7 +105,19 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
           }}>
           Convert
         </button>}
-      </div>)}
+      <div className='user-hint'>
+        {!filename.valid && (
+          <p>
+            The <b>Filename</b> has to consist of alphanumeric characters.
+          </p>
+        )}
+        {!traceDuration.valid && (
+          <p>
+            The <b>Duration</b> value has to be an integer greater than 0.
+          </p>
+        )}
+      </div>
+            </div>)}
     </div >
   )
 }

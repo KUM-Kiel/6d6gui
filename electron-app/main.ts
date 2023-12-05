@@ -9,8 +9,8 @@ import util from 'util'
 import fs from 'fs'
 
 const execFileAsync = util.promisify(execFile)
-/*
-require('ofe').call() */
+const systemOS = process.platform
+
 
 export interface FileErrorData {
   type: string,
@@ -59,7 +59,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+  if (systemOS !== 'darwin') {
     app.quit()
   }
 })
@@ -87,7 +87,7 @@ const deviceList = Watcher((list: Device[]) => {
 
 // Initialization of the deviceList on startup of the application.
 ipcMain.on('start-up', (event: any) => {
-  event.reply('device-list', deviceList())
+  event.reply('device-list', deviceList(), systemOS)
 })
 
 // Checks whether a file in a specific directory already exists.
@@ -116,7 +116,7 @@ ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
 })
 
 ipcMain.handle('6d6info', async (event, filepath: string) => {
-  if (process.platform === 'win32') {
+  if (systemOS === 'win32') {
     let r = await Kum6D6.open(filepath)
     if (r === null) return null
     let info = { info: r.infoJson(), filepath: filepath, base: path.basename(filepath), ext: path.extname(filepath), directoryPath: path.dirname(filepath) }

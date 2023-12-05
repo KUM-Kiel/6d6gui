@@ -62,7 +62,10 @@ export class Kum6D6 {
 
   async binarySearch(value: TaiDate, startTime: TaiDate, endTime: TaiDate, startOffset: number, endOffset: number): Promise<TaiDate> {
     if (this.file === null) throw new Error('Already closed')
-    if (endTime.t < startTime.t) throw new Error('End-position cannot be smaller than Start-position')
+    if (endTime.t < startTime.t) throw new Error('End-position cannot be smaller than start-position')
+
+    // TODO: Shotfile seektime checkup for starttime < seektime <  endtime
+    // TODO: Checkup shotfile for legitimacy - incrementing shotnumbers, etc.
 
     // Gemessen an SuchZeitpunkt und Dateigröße bzw. Bytelänge von Samples den ersten guess möglichst Nahe am gesuchten Zeitpunkt halten  #
 

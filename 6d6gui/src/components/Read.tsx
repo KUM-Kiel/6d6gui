@@ -45,7 +45,7 @@ export const Read = ({
           </button>
         )}
       </p>
-      {d6Info !== null && <p>Please choose a .6d6 file to convert from.</p>}
+      {d6Info === null && <p>Please choose a .6d6 file to convert from.</p>}
       {d6Info !== null && (<div>
         <div className={`${d6Info !== null ? 'hidden' : 'shown'}`}>
           <br />

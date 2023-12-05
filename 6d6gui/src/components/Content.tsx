@@ -23,7 +23,7 @@ type ContentProps = {
   shotfile: string
 }
 
-// Conainer for the main content of a chosen MenuItem.
+// Container for the main content of a chosen MenuItem.
 const Content = ({
   contentId,
   setHighlightTime,
@@ -45,7 +45,7 @@ const Content = ({
   }
 
   // Change the content depending on the chosen MenuItem in the MenuColumn.
-  if (contentId === 1) {
+  if (contentId === 2) {
     contentShown = (
       <Read
         filename={filename}
@@ -57,7 +57,7 @@ const Content = ({
         startProcessing={startProcessing}
       />
     )
-  } else if (contentId === 0) {
+  } else if (contentId === 1) {
     contentShown = (
       <MSeed
         setHighlightTime={setHighlightTime}
@@ -68,7 +68,7 @@ const Content = ({
         startProcessing={startProcessing}
       />
     )
-  } else if (contentId === 2) {
+  } else if (contentId === 0) {
     contentShown = (
       <Segy
       actions={actions}

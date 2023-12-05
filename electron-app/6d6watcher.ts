@@ -9,8 +9,11 @@ const execFileAsync = util.promisify(execFile)
 const readdirAsync = util.promisify(readdir)
 
 // Filter to only look for relevant files (devices).
-const filters: RegExp[] = [/^sd[a-z]\d+$/, /^mmcblk\d+p\d+$/]
+// sdX & mmcblkX is used under Linux.
+// diskX is used under MacOS.
+const filters: RegExp[] = [/^sd[a-z]\d+$/, /^mmcblk\d+p\d+$/, /^disk\d+$/]
 
+// The directory for external devices under Linux & MacOS.
 const devPath: string = '/dev'
 
 // Checking whether 6d6compat is installed.
