@@ -47,7 +47,7 @@ export const Read = ({
       </p>
       {d6Info === null && <p>Please choose a .6d6 file to convert from.</p>}
       {d6Info !== null && (<div>
-        <div className={`${d6Info !== null ? 'hidden' : 'shown'}`}>
+        <div >
           <br />
           Set up to convert from
           <span className="read-text-hightlight"> {srcFile.file} </span> to
@@ -76,7 +76,7 @@ export const Read = ({
               filenameRead: filename.value,
               targetDirectory: destPath
             })
-          }}></button>
+          }}>Convert</button>
       </div>)}
     </div>
   )

@@ -11,7 +11,7 @@ const readdirAsync = util.promisify(readdir)
 // Filter to only look for relevant files (devices).
 // sdX & mmcblkX is used under Linux.
 // diskX is used under MacOS.
-const filters: RegExp[] = [/^sd[a-z]\d+$/, /^mmcblk\d+p\d+$/, /^disk\d+$/]
+const filters: RegExp[] = [/^sd[a-z]$/, /^mmcblk\d+$/, /^disk\d+$/]
 
 // The directory for external devices under Linux & MacOS.
 const devPath: string = '/dev'
@@ -43,6 +43,7 @@ const info = async (dir: string, name: string): Promise<Device | null> => {
   try {
     const command: string = binInstalled ? '6d6info' : './public/bin/6d6info'
     const r = await execFileAsync(command, ['--json', path.join(dir, name)])
+    console.log({r})
     return {
       directory: dir,
       name: name,

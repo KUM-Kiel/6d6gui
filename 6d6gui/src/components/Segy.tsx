@@ -21,12 +21,12 @@ type SegyProps = {
 // The view for the use of 6d6Copy.
 export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shotfile, filename, setFilename }: SegyProps) => {
 
-  const [traceDuration, setTraceDuration] = useValidatedState('', numericCheck(1, 100000))
-  const [sourceDepth, setSourceDepth] = useValidatedState('', numericCheck(0,10000))
+  const [traceDuration, setTraceDuration] = useValidatedState<string>('', numericCheck(1, 999))
+  const [sourceDepth, setSourceDepth] = useValidatedState<string>('', numericCheck(0, 10000))
 
   return (
     <div className="segy-main">
-      <p>This utility converts a 6D6 formatted file to a SEG-Y file.</p>
+      <p>This utility converts a 6D6 formatted file to a SEG-Y file.<br/>Please choose a 6d6-file <b>and</b> a shotfile!</p>
 
       <button
         className='btn medium'
@@ -44,13 +44,13 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
       {srcFile.filepath !== '' && (
         <div>
           <p><b>6d6 file:</b></p>
-          <p>{srcFile.filepath}</p>
+          <span className='read-text-hightlight'>{srcFile.filepath}</span>
         </div>
       )}
       {shotfile !== '' && (
         <div>
           <p><b>Shotfile:</b></p>
-          <p>{shotfile}</p>
+          <span className='read-text-hightlight'>{shotfile}</span>
         </div>
       )}
       {d6Info !== null && (<div>
@@ -63,7 +63,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
         {destPath !== '' && (
           <div>
             <p><b>Output direction:</b></p>
-            <p>{destPath}</p>
+            <span className='read-text-hightlight'>{destPath}</span>
           </div>
         )}
         <div className={`${srcFile.filepath === '' ? 'hidden' : 'shown'}`}>
@@ -84,6 +84,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
           placeholder={'Duration of a Trace in Seconds'}
         />
         <br/>
+        <p><b>Optional:</b></p>
         <TextInput
           value={sourceDepth.value}
           valid={sourceDepth.valid}

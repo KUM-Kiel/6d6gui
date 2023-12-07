@@ -1,11 +1,14 @@
-import useValidatedState, { alphaNumericCheck } from '../validation'
+import useValidatedState, { alphaNumericCheck, outputTemplateCheck } from '../validation'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import React, { ChangeEventHandler, useState } from 'react'
 import TextInput from './TextInput'
 import { Actions, fileObj } from '../App'
 import { MSeedData } from '../../../electron-app/main'
 
+const pathSeparator = (systemOS: string) => systemOS === 'win32' ? '\\' : '/'
+
 type MSeedProps = {
+  systemOS: string,
   actions: Actions,
   destPath: string,
   d6Info: InfoJson | null,
@@ -79,6 +82,7 @@ const outputTemplateList = [
 
 // Main Content for the use of 6D6MSeed.
 const MSeed = ({
+  systemOS,
   actions,
   destPath,
   d6Info,
@@ -102,21 +106,25 @@ const MSeed = ({
   const [channels, setChannels] = useValidatedState<string>('',
     validateChannelsInput(d6Info ? d6Info.channels.length : 0)
   )
-  const [outputTemplate, setOutputTemplate] = useState({
+  const [outputTemplate, setOutputTemplate] = useValidatedState<string>(standardTemplate, outputTemplateCheck())
+
+
+  /* const [outputTemplate, setOutputTemplate] = useState({
     value: standardTemplate,
     valid: true
-  })
+  }) */
 
   // Resetting the template.
   const setStandardTemplate = () => {
-    setOutputTemplate({ value: standardTemplate, valid: true })
+    setOutputTemplate(standardTemplate)
     document.getElementById('output-template')?.focus()
   }
 
+  /*
   const setOutputTemplatePlusCheck = (value: string) => {
     let tempBool = /%S/g.test(value)
     setOutputTemplate({ value: value, valid: tempBool })
-  }
+  } */
 
   const resetAllInputs = () => {
     setStation('')
@@ -181,32 +189,28 @@ const MSeed = ({
           to
         </p>
         <div className='input out-template-path'>
-          <label className='grey'>Output Path</label>
-          <input value={destPath + '/...'} disabled />
+          <p><b>Output Path: </b>
+            <span className='read-text-hightlight'>{destPath + pathSeparator(systemOS) + '...'}</span>
+          </p>
         </div>
-        <br />
-        With:
-        <br />
-        <div className='input out-template'>
-          <label>Output Template</label>
-          <input
-            id='output-template'
+        <p>With:</p>
+        <div className='row'>
+          <TextInput
             value={outputTemplate.value}
-            onChange={e => {
-              setOutputTemplatePlusCheck(e.target.value)
-            }}
-          />{' '}
-          .mseed
+            valid={outputTemplate.valid}
+            changeFunction={setOutputTemplate}
+            placeholder={'Output template'}
+          /><div className='centered'>.mseed</div>
         </div>
         <br />
-        Add one of the following to the end of the output sample:
+        Add one of the following to the end of the output template:
         <br />
         {outputTemplateList.map(template => (
           <button
             className='btn small'
             key={template.id}
             onClick={() => {
-              setOutputTemplatePlusCheck(outputTemplate.value + template.value)
+              setOutputTemplate(outputTemplate.value + template.value)
               document.getElementById('output-template')?.focus()
             }}
           >

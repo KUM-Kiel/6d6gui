@@ -5,7 +5,7 @@ import { Task } from '../../electron-app/spawnProcess'
 import { InfoJson } from '../../electron-app/kum-6d6'
 import React, { useState, useEffect } from 'react'
 import TaskManager from './components/TaskManager'
-import MenuRow from './components/MenuColumn'
+import MenuRow from './components/MenuRow'
 import { keepTheme } from './components/Themes'
 import FileList from './components/FileList'
 import Content from './components/Content'
@@ -57,7 +57,7 @@ export default function App() {
   const [showContent, setShowContent] = useState<number>(0)
   const [highlightTime, setHighlightTime] = useState<string>('none')
 
-  const [directories, setDirectories] = useState<Device[]>([])
+  const [storages, setStorages] = useState<Device[]>([])
   const [extDevice, setExtDevice] = useState<Device | null>(null)
   const [taskList, setTaskList] = useState<Task[]>([])
 
@@ -71,10 +71,13 @@ export default function App() {
   // If something has to be changed in 'menuList', keep 'switchContent' & Content.tsx in mind.
   const [activeMenuItem, setActiveMenuItem] = useState<number>(0)
   const menuList: MenuElement[] = [
-    { title: 'SEG-Y', show: (os, devices) => true },
-    { title: 'MSeed', show: (os, devices) => os !== 'win32' },
-    { title: 'Read', show: (os, devices) => os !== 'win32' },
-    { title: 'Copy', show: (os, devices) => os !== 'win32' && devices > 0 },
+    { title: 'SEG-Y', show: () => true },
+    { title: 'MSeed', show: (os, devices) => true },
+    { title: 'Read', show: (os, devices) => true },
+    { title: 'Copy', show: (os, devices) => true },
+    /*     { title: 'MSeed', show: (os) => os !== 'win32' },
+        { title: 'Read', show: (os) => os !== 'win32' },
+        { title: 'Copy', show: (os, devices) => os !== 'win32' && devices > 0 }, */
   ]
 
   // After picking a new file, the once manually chosen targetDirectory won't be automatically adapted to the directory pf the src file.
@@ -86,9 +89,9 @@ export default function App() {
     if (fileChoice === null && srcFile.filepath !== '') {
       return extDevice
     } else {
-      for (let i = 0; i < directories.length; ++i) {
-        if (directories[i].name === selected.name) {
-          return directories[i]
+      for (let i = 0; i < storages.length; ++i) {
+        if (storages[i].name === selected.name) {
+          return storages[i]
         }
       }
     }
@@ -145,7 +148,7 @@ export default function App() {
   // Collection of handlers for incoming information from the backend.
   useEffect(() => {
     window.ipcRenderer.on('device-list', (e: Event, devices: Device[], systemOS?: string) => {
-      setDirectories(devices)
+      setStorages(devices)
 
       if (systemOS !== undefined) setSystemOS(systemOS)
     })
@@ -189,7 +192,7 @@ export default function App() {
       <MenuRow
         menu={menuList}
         activeMenuItem={activeMenuItem}
-        directories={directories}
+        directories={storages}
         changeContent={switchContent}
         setAppDarkMode={setAppDarkMode}
         systemOS={systemOS}
@@ -198,7 +201,7 @@ export default function App() {
         <div className='app-content'>
           <FileList
             changeFile={triggerInfoChange}
-            dirList={directories}
+            dirList={storages}
             fileChoice={fileChoice}
             switchContent={switchContent}
           />
@@ -211,6 +214,7 @@ export default function App() {
             />
           )}
           <Content
+            systemOS={systemOS}
             contentId={showContent}
             setHighlightTime={setHighlightTime}
             actions={{
@@ -226,6 +230,7 @@ export default function App() {
             d6Info={d6Info}
             srcFile={srcFile}
             shotfile={shotfile}
+            extDevice={extDevice}
           />
         </div>
         <TaskManager

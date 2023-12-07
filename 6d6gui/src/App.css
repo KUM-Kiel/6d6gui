@@ -719,3 +719,7 @@ svg {
 .user-hint {
   color: var(--warning);
 }
+
+.centered {
+  align-self: center;
+}

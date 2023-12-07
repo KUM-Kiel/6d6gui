@@ -4,8 +4,8 @@ build/
 dist/
 6d6gui-win
 6d6gui-linux
-electron_win.zip
-electron_linux.zip
+
+*.zip
 
 # Seismic Data
 *.6d6

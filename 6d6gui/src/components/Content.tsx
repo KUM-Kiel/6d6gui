@@ -7,9 +7,11 @@ import Copy from './Copy'
 import Read from './Read'
 import Segy from './Segy'
 import { InfoJson } from '../../../electron-app/kum-6d6'
+import { Device } from '../../../electron-app/6d6watcher'
 
 // Defining the structure of the Content Props.
 type ContentProps = {
+  systemOS: string,
   contentId: number,
   setHighlightTime: Function,
   actions: Actions,
@@ -20,11 +22,13 @@ type ContentProps = {
   triggerConversion: Function,
   d6Info: InfoJson | null,
   srcFile: fileObj,
-  shotfile: string
+  shotfile: string,
+  extDevice: Device | null
 }
 
 // Container for the main content of a chosen MenuItem.
 const Content = ({
+  systemOS,
   contentId,
   setHighlightTime,
   actions,
@@ -35,7 +39,8 @@ const Content = ({
   triggerConversion,
   d6Info,
   srcFile,
-  shotfile
+  shotfile,
+  extDevice
 }: ContentProps) => {
 
   let contentShown
@@ -44,7 +49,7 @@ const Content = ({
     triggerConversion(data)
   }
 
-  // Change the content depending on the chosen MenuItem in the MenuColumn.
+  // Change the content depending on the chosen MenuItem in the MenuRow.
   if (contentId === 2) {
     contentShown = (
       <Read
@@ -60,6 +65,7 @@ const Content = ({
   } else if (contentId === 1) {
     contentShown = (
       <MSeed
+        systemOS={systemOS}
         setHighlightTime={setHighlightTime}
         actions={actions}
         destPath={targetDirectory}
@@ -89,8 +95,8 @@ const Content = ({
         setFilename={setFilename}
         actions={actions}
         destPath={targetDirectory}
-        srcFile={srcFile}
         startProcessing={startProcessing}
+        extDevice={extDevice}
       />
     )
   }
