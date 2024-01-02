@@ -1,6 +1,6 @@
 // Main Content for the use of 6D6Copy.
 import TextInput from './TextInput'
-import { Actions, fileObj } from '../App'
+import { Actions } from '../App'
 import React from "react"
 import { ValidatedValue } from '../validation'
 import { CopyData } from '../../../electron-app/main'

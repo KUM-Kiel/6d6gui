@@ -20,11 +20,11 @@ const getField = (fields: string[], name: string) => {
   return n
 }
 
-export const parseShotFile = (fileContent: string): Shot[] | null => {
-  return parseShotFileDat(fileContent) || parseShotFileSend(fileContent)
+export const parseShotfile = (fileContent: string): Shot[] | null => {
+  return parseShotfileDat(fileContent) || parseShotFileSend(fileContent)
 }
 
-export const parseShotFileDat = (fileContent: string): Shot[] | null => {
+export const parseShotfileDat = (fileContent: string): Shot[] | null => {
   const lines: string[] = fileContent.split(/\r?\n/g).filter(v => v)
   const names: string[] = lines[0].split(/[ \t]+/g)
 
@@ -84,15 +84,15 @@ export const parseShotFileSend = (fileContent: string): Shot[] => {
   })
 }
 
-export const readShotFile = async (fileName: string): Promise<Shot[]> => {
-  let parsedFile = parseShotFile(await readFile(fileName, 'utf-8'))
+export const readShotfile = async (filename: string): Promise<Shot[]> => {
+  let parsedFile = parseShotfile(await readFile(filename, 'utf-8'))
   if (parsedFile === null) throw new Error(`Can't parse the given file.`)
   return parsedFile
 }
 
 
 const test = async () => {
-  console.log((await readShotFile('../BGR18-2R2.send')).map(s => ({...s, date: s.time.toISOString()})))
+  console.log((await readShotfile('../BGR18-2R2.send')).map(s => ({...s, date: s.time.toISOString()})))
 }
 if (require.main === module) {
   test().catch(e => {

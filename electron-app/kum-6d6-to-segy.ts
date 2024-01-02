@@ -1,4 +1,4 @@
-import { readShotFile } from './shot-file-parser'
+import { readShotfile } from './shotfile-parser'
 import { SegyWriter } from './segy-writer'
 import Kum6D6 from './kum-6d6'
 
@@ -9,7 +9,7 @@ import { Pauser } from './pauser'
 const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
 
 // generate seg-y files
-export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotFile: string, filenameSegy: string, traceDuration: number,pauser: Pauser,   onUpdate: (percentage: number, progress: string) => void) => {
+export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotfile: string, filenameSegy: string, traceDuration: number,pauser: Pauser,   onUpdate: (percentage: number, progress: string) => void) => {
   const file = await Kum6D6.open(location6d6)
   const segyFiles: SegyWriter[] = []
 
@@ -26,7 +26,7 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
     // every shotfile-line shall be a trace from .6d6
 
     // write file headers
-    const shotFile = await readShotFile(locationShotFile)
+    const shotFile = await readShotfile(locationShotfile)
     for (let i = 0; i < shotFile.length; ++i) {
       onUpdate(100 * i / shotFile.length, i + '/' + shotFile.length + ' shots processed')
       // relocate 'write to trace' because of read information from meta-data?

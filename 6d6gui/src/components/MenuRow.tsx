@@ -7,9 +7,9 @@ import React from "react"
 
 type MenuColumnProps = {
   menu: MenuElement[],
-  changeContent: Function,
+  changeContent: (id: number) => void,
   directories: Device[],
-  setAppDarkMode: Function,
+  setAppDarkMode: (value: boolean) => void,
   systemOS: string,
   activeMenuItem: number,
 }

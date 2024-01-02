@@ -9,7 +9,7 @@ type TaskProps = {
 }
 
 // UI for Task 'containers'.
-const TaskContainer = ({ task, activateAction, darkMode }: TaskProps) => {
+const TaskComponent = ({ task, activateAction, darkMode }: TaskProps) => {
   return (
     <div className="task-container">
       <div className="task" title={task.description}>
@@ -41,4 +41,4 @@ const TaskContainer = ({ task, activateAction, darkMode }: TaskProps) => {
   )
 }
 
-export default TaskContainer
+export default TaskComponent

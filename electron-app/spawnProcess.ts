@@ -100,7 +100,7 @@ export class TaskManager {
     return id
   }
   // Start a 6d6copy process with the given parameters.
-  $6d6copy (from: string, to: string, filename: string, binInstalled: boolean) {
+  $6d6copy (from: string, to: string, filename: string) {
     const id: string = this.getId()
     const toChecked = /\.6d6$/.test(to) ? to : path.join(to, filename + '.6d6')
     /*   const command = binInstalled ? '6d6copy' :
@@ -147,7 +147,7 @@ export class TaskManager {
       actions: p.actions()
     }
   }
-  $6d6read (from: string, to: string, binInstalled: boolean) {
+  $6d6read (from: string, to: string) {
     const id = this.getId()
     const toChecked = /\.s2z$/.test(to) ? to : to + '.s2x'
     /*     const command = binInstalled ? '6d6read' :
@@ -192,7 +192,7 @@ export class TaskManager {
       actions: p.actions()
     }
   }
-  $6d6mseed (data: MSeedData, tempPath: string, binInstalled: boolean) {
+  $6d6mseed (data: MSeedData, tempPath: string) {
     let options = ['--json-progress']
     let insert = ''
 

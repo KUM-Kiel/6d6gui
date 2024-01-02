@@ -84,7 +84,7 @@ export default function App() {
   let targetDirectoryFlag = false
 
   // Returns the drives/directories useable for 6d6copy.
-  const getDeviceInfo = (selected: Device) => {
+  const getDeviceInfo = (selected: Device): Device | null => {
     if (d6Info === null) return null
     if (fileChoice === null && srcFile.filepath !== '') {
       return extDevice
@@ -99,9 +99,9 @@ export default function App() {
   }
 
   // Request the 6d6info for a given file, if a valid response arrives set the current info according to that.
-  const get6d6Info = async (filepath: string) => {
+  const get6d6Info = async (filepath: string): Promise<void> => {
     let res = await window.ipcRenderer.get6d6Info(filepath)
-    if (res === null) return null
+    if (res === null) return
     setSrcFile({
       filepath: res.filepath,
       file: res.base,
@@ -116,25 +116,25 @@ export default function App() {
 
   // Three functions for inter process communication
   // (Requesting information and handling the responses accordingly.)
-  const chooseShotfile = async () => {
+  const chooseShotfile = async (): Promise<void> => {
     let shotfiles = await window.ipcRenderer.chooseFile('Shotfile', ['send', 'dat'])
     if (shotfiles !== null && shotfiles.length === 1) setShotfile(shotfiles[0])
   }
 
-  const choose6d6File = async () => {
+  const choose6d6File = async (): Promise<void> => {
     let d6File = await window.ipcRenderer.chooseFile('6d6file', ['6d6'])
     if (d6File === null) return
     await get6d6Info(d6File[0])
   }
 
-  const chooseTargetDirectory = async () => {
+  const chooseTargetDirectory = async (): Promise<void> => {
     let targetDirectories = await window.ipcRenderer.chooseDirectory('targetDirectory', ['*'])
     if (targetDirectories !== null) setTargetDirectory(targetDirectories[0])
     targetDirectoryFlag = true
   }
 
   // Forwarding an action trigger to the backend. -- ?!
-  const triggerAction = async (id: string, action: string) => {
+  const triggerAction = async (id: string, action: string): Promise<void> => {
     let actionTriggered = await window.ipcRenderer.taskAction(id, action)
     console.log(actionTriggered)
   }
@@ -173,14 +173,14 @@ export default function App() {
   }, [])
 
   // Function to change the shown main content.
-  const switchContent = (id: number) => {
+  const switchContent = (id: number): void => {
     setFilename('')
     setShowContent(id)
     setActiveMenuItem(id)
   }
 
   // As soon as something changes regarding a 6d6 device or file, the information about the chosen entity gets updated.
-  const triggerInfoChange = (filename: Device) => {
+  const triggerInfoChange = (filename: Device): void => {
     setFileChoice(filename.name)
     setExtDevice(getDeviceInfo(filename))
   }

@@ -155,7 +155,6 @@ ipcMain.handle('6d6copy', (event: any, data: CopyData) => {
       data.srcPath,
       data.targetDirectory,
       data.filenameCopy,
-      binariesInstalled
     )
   } else {
     event.reply('file-error', {
@@ -178,7 +177,7 @@ ipcMain.handle('6d6read', async (event: any, data: ReadData) => {
   const from = data.srcPath
   const to = path.join(data.targetDirectory, data.filenameRead)
   if (!checkForFileExistence(to)) {
-    taskManager.$6d6read(from, to, binariesInstalled)
+    taskManager.$6d6read(from, to)
   } else {
     event.reply('file-error', {
       error: true,
@@ -218,7 +217,7 @@ ipcMain.handle('6d6mseed', (event: any, data: MSeedData) => {
       message: 'The station folder already exists.'
     }
   } else {
-    taskManager.$6d6mseed(data, data.srcFilepath, binariesInstalled)
+    taskManager.$6d6mseed(data, data.srcFilepath)
   }
 })
 
