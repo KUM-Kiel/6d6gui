@@ -195,6 +195,7 @@ export class TaiDate {
   leapsecsValid() {
     return this.t < lastValid
   }
+  //  Use this function to indicate update-need.
   leapsecsNeedUpdate() {
     return this.t > nextUpdate
   }

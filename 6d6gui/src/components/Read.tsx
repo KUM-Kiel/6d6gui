@@ -1,10 +1,10 @@
 // Main Content for the use of 6D6Read.
-import { ValidatedValue } from "../validation"
-import TextInput from './TextInput'
-import { Actions, fileObj } from "../App"
-import React from "react"
 import { InfoJson } from "../../../electron-app/kum-6d6"
 import { ReadData } from "../../../electron-app/main"
+import { ValidatedValue } from "../validation"
+import { Actions, fileObj } from "../App"
+import TextInput from './TextInput'
+import React from "react"
 
 type ReadProps = {
   srcFile: fileObj,

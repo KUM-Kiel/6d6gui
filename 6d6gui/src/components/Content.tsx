@@ -1,4 +1,6 @@
 import { MSeedData, ReadData, CopyData, SegyData } from '../../../electron-app/main'
+import { Device } from '../../../electron-app/6d6watcher'
+import { InfoJson } from '../../../electron-app/kum-6d6'
 import { ValidatedValue } from '../validation'
 import { Actions, fileObj } from '../App'
 import MSeed from './MSeed'
@@ -6,20 +8,18 @@ import React from "react"
 import Copy from './Copy'
 import Read from './Read'
 import Segy from './Segy'
-import { InfoJson } from '../../../electron-app/kum-6d6'
-import { Device } from '../../../electron-app/6d6watcher'
 
 // Defining the structure of the Content Props.
 type ContentProps = {
   systemOS: string,
   contentId: number,
-  setHighlightTime: Function,
+  setHighlightTime: (value: string) => void,
   actions: Actions,
   targetDirectory: string,
   fileChoice: string | null,
   setFilename: (value: string) => void,
   filename: ValidatedValue<string>,
-  triggerConversion: Function,
+  triggerConversion: (filename: MSeedData | ReadData | CopyData | SegyData) => void,
   d6Info: InfoJson | null,
   srcFile: fileObj,
   shotfile: string,
@@ -50,15 +50,16 @@ const Content = ({
   }
 
   // Change the content depending on the chosen MenuItem in the MenuRow.
+  // Keep in mind that App.tsx defines when each of them is avaiable.
   if (contentId === 2) {
     contentShown = (
       <Read
         filename={filename}
-        setFilename={setFilename}
         actions={actions}
         destPath={targetDirectory}
         d6Info={d6Info}
         srcFile={srcFile}
+        setFilename={setFilename}
         startProcessing={startProcessing}
       />
     )
@@ -66,23 +67,23 @@ const Content = ({
     contentShown = (
       <MSeed
         systemOS={systemOS}
-        setHighlightTime={setHighlightTime}
         actions={actions}
         destPath={targetDirectory}
         d6Info={d6Info}
         srcFile={srcFile}
+        setHighlightTime={setHighlightTime}
         startProcessing={startProcessing}
       />
     )
   } else if (contentId === 0) {
     contentShown = (
       <Segy
+      filename={filename}
       actions={actions}
       destPath={targetDirectory}
       d6Info={d6Info}
       srcFile={srcFile}
       shotfile={shotfile}
-      filename={filename}
       setFilename={setFilename}
       startProcessing={startProcessing}
       />
@@ -90,13 +91,13 @@ const Content = ({
   } else {
     contentShown = (
       <Copy
+      filename={filename}
+      actions={actions}
+      destPath={targetDirectory}
         fileChoice={fileChoice}
-        filename={filename}
-        setFilename={setFilename}
-        actions={actions}
-        destPath={targetDirectory}
-        startProcessing={startProcessing}
         extDevice={extDevice}
+        setFilename={setFilename}
+        startProcessing={startProcessing}
       />
     )
   }

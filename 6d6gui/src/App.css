@@ -5,78 +5,61 @@
   src: url(fonts/FiraSans-Thin.ttf);
   font-weight: 100;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-ExtraLight.ttf);
   font-weight: 200;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-Light.ttf);
   font-weight: 300;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-Regular.ttf);
   font-weight: 400;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-Medium.ttf);
   font-weight: 500;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-SemiBold.ttf);
   font-weight: 600;
 }
-
 @font-face {
   font-family: 'fira-sans';
   src: url(fonts/FiraSans-Bold.ttf);
   font-weight: 700;
 }
-
 @font-face {
   font-family: 'fira-code';
   src: url(fonts/FiraCode-Light.ttf);
   font-weight: 300;
 }
-
 @font-face {
   font-family: 'fira-code';
   src: url(fonts/FiraCode-Regular.ttf);
   font-weight: 400;
 }
-
 @font-face {
   font-family: 'fira-code';
   src: url(fonts/FiraCode-Medium.ttf);
   font-weight: 500;
 }
-
 @font-face {
   font-family: 'fira-code';
   src: url(fonts/FiraCode-SemiBold.ttf);
   font-weight: 600;
 }
-
 @font-face {
   font-family: 'fira-code';
   src: url(fonts/FiraCode-Bold.ttf);
   font-weight: 700;
 }
-
-/* ::-webkit-datetime-edit {color: red; padding: 0.3em;}
-
-::-webkit-datetime-edit-text {color: orange;}
-::-webkit-datetime-edit-fields-wrapper {background: grey;}
- */
 
 .theme-light {
   --element-background: #fff;
@@ -90,14 +73,15 @@
   --base: #fff;
   --text-color: #000;
   --btn-color: #000;
+  --btn-color-disabled: #666;
   --btn-background: #eee;
   --btn-hover: #a4ccff;
   --btn-active: #ccc;
+  --btn-disabled: #ddd;
   --placeholder-color: #666666;
   --font-boldness: 600;
   transition: all 0.2s ease;
 }
-
 .theme-dark {
   --element-background: #333;
   --app-background: #292929;
@@ -110,9 +94,11 @@
   --base: #333;
   --text-color: #eee;
   --btn-color: #fff;
+  --btn-color-disabled: #ccc;
   --btn-background: #444;
   --btn-hover: #5075a1;
   --btn-active: #555;
+  --btn-disabled: #666;
   --placeholder-color: #bbb;
   --font-boldness: 400;
   transition: all 0.2s ease;
@@ -121,7 +107,6 @@
 html, body{
   background-color: var(--base);
 }
-
 @media screen and (min-width: 900px) {
   .task-container {
     width: 50%;
@@ -141,10 +126,10 @@ html, body{
     flex-wrap: nowrap;
   }
 }
-
 ::placeholder {
   color: var(--placeholder-color);
 }
+
 
 /* App */
 
@@ -160,7 +145,6 @@ html, body{
   overflow: none;
   transition: all 0.2s ease;
 }
-
 .app-content {
   display: flex;
   flex-direction: row;
@@ -172,12 +156,10 @@ html, body{
   border-radius: 0.5em;
   font-family: 'fira-sans', Georgia, 'Times New Roman', Times, serif;
 }
-
 .app-container {
   display: flex;
   flex-wrap: wrap;
 }
-
 .btn {
   color: var(--btn-color);
   background-color: var(--btn-background);
@@ -196,35 +178,31 @@ html, body{
 .btn:focus {
   outline: none;
 }
-
+.btn:disabled, .btn:disabled:hover {
+  color: var(--btn-color-disabled);
+  background-color: var(--btn-disabled);
+}
 .ratio-quarter{
   width: 25%;
 }
-
 .ratio-half{
   width: 50%;
 }
-
 .ratio-threequarter {
   width: 75%;
 }
-
 .ratio-full {
   width: 100%;
 }
-
 .small {
   font-size: 0.9em;
 }
-
 .medium {
   font-size: 1.2em;
 }
-
 .big {
   font-size: 1.5em;
 }
-
 .long {
   width: auto;
 }
@@ -242,7 +220,6 @@ html, body{
   color: var(--warning);
   align-self: left;
 }
-
 .info-main {
   font-weight: 400;
   text-align: left;
@@ -252,20 +229,17 @@ html, body{
   padding-right: 1.5em;
   flex-grow: 1;
 }
-
 .number-monospace {
   font-feature-settings: "tnum";
 }
-
 .monospace{
   font-family: 'fira-code';
   font-weight: 400;
-
 }
-
 .thicker-font {
   font-weight: 600;
 }
+
 
 /* FileList */
 
@@ -278,10 +252,10 @@ html, body{
   overflow-y: auto;
   min-width: 5.5em;
 }
-
 input:focus {
   outline: none;
 }
+
 
 /* Header */
 
@@ -293,7 +267,7 @@ input:focus {
   color: var(--kum-color);
   font-weight: var(--font-boldness);
   font-size: 2.2em;
-  }
+}
 
 
 /* IconButton */
@@ -301,10 +275,10 @@ input:focus {
 svg {
   cursor: pointer;
 }
-
 .icon{
   color: var(--kum-color);
 }
+
 
 /* Menu */
 
@@ -313,12 +287,10 @@ svg {
   margin-Left: 0.8em;
   text-align: left;
 }
-
 .toggle {
   --width: 50px;
   --height: calc(var(--width) / 2);
   --border-radius: calc(var(--height) / 2);
-
   cursor: pointer;
   float: right;
   margin-right: 2em;
@@ -350,11 +322,9 @@ svg {
 .toggle-input:checked ~ .toggle-fill {
   background: var(--counterpart);
 }
-
 .toggle-input:checked ~ .toggle-fill::after {
   transform: translateX(calc(var(--width) + 45px));
 }
-
 .toggle-text {
   color: white;
   margin-right: 0.5em;
@@ -405,18 +375,18 @@ svg {
   max-width: 37.1em;
   text-align: left;
 }
+
+
 /* MSeed */
 
 .mseed-main {
   max-width: 37.1em;
   text-align: left;
 }
-
 .segy-main {
   max-width: 37.1em;
   text-align: left;
 }
-
 .checkmark-container {
   position: relative;
   padding-left: 35px;
@@ -427,7 +397,6 @@ svg {
   cursor: pointer;
   font-size: 1.2em;
 }
-
 .checkmark-container input {
   position: absolute;
   opacity: 0;
@@ -435,7 +404,6 @@ svg {
   height: 0;
   cursor: pointer;
 }
-
 .checkmark {
   position: absolute;
   top: 0;
@@ -445,36 +413,28 @@ svg {
   background-color: var(--basic-color);
   border-radius:  0.3em;
 }
-
 .checkmark-container:hover input ~ .checkmark {
   background-color: var(--btn-background);
 }
-
-
 .checkmark-container input:checked ~ .checkmark {
   background-color: #2196F3;
 }
-
 .checkmark:after {
   content: "";
   position: absolute;
   display: none;
 }
-
 .checkmark-container input:checked ~ .checkmark {
   background-color: var(--kum-color);
 }
-
 .checkmark:after {
   content: "";
   position: absolute;
   display: none;
 }
-
 .checkmark-container input:checked ~ .checkmark:after {
   display: block;
 }
-
 .checkmark-container .checkmark:after {
   left: 9px;
   top: 5px;
@@ -494,16 +454,14 @@ svg {
   max-width: 37.1em;
   text-align: left;
 }
-.shown{
+.shown {
   opacity: 1;
   transition: all 250ms linear;
 }
-
 .hidden {
   opacity: 0;
   transition: all 250ms linear 2s;
 }
-
 .read-text-hightlight {
   color: var(--kum-color);
   font-weight: 500;
@@ -517,7 +475,6 @@ svg {
   box-sizing: border-box;
   padding: 0.2em;
 }
-
 .task {
   display: flex;
   flex-direction: row;
@@ -531,15 +488,14 @@ svg {
   font-size: 0.9em;
   font-feature-settings: "tnum";
 }
-
 .task-info {
   flex-grow: 1;
   margin-right: 1em;
 }
-
 .task:hover {
   background-color: var(--highlight);
 }
+
 
 /* different name? */
 .task-row {
@@ -549,7 +505,6 @@ svg {
   justify-content: space-between;
   align-items: center;
 }
-
 .progress-bar {
   flex-grow: 1;
   margin-right: 1em;
@@ -575,6 +530,7 @@ svg {
   }
 }
 
+
 /* TaskManager */
 
 .task-manager {
@@ -595,6 +551,7 @@ svg {
   margin-top: 0.5em;
   color: var(--kum-color);
 }
+
 
 /* TextInput */
 
@@ -617,10 +574,9 @@ svg {
   outline: none;
 }
 .text-input:disabled {
-  background-color: transparent;
-  color: transparent;
+  background-color: black;
+  color: grey;
 }
-
 .input > label {
   z-index: 2;
   position: absolute;
@@ -652,11 +608,9 @@ svg {
 .input > input:focus, .input > textarea:focus {
   border-color: var(--kum-color);
 }
-
 .date-input {
   margin-right: 0.7em;
 }
-
 .date-input > label {
   position: absolute;
   transform: translate(0.5em, -0.5em);
@@ -666,7 +620,6 @@ svg {
   padding: 0 0.2em;
   line-height: 1em;
 }
-
 .date-input > input, .date-input > textarea{
   color: var(--btn-color);
   background-color: var(--element-background);
@@ -675,7 +628,6 @@ svg {
   padding: 0.5em;
   outline: none;
 }
-
 .dropdown > label > select {
   font: inherit;
   font-size: inherit;
@@ -686,40 +638,32 @@ svg {
   background: var(--element-background);
   color: var(--btn-color);
 }
-
 .row {
   display: flex;
   width: 100%;
   margin: 1em 0.5em 0.5em 0em;
 }
-
 .row > p {
   margin-top: 0.5em;
 }
-
 .row > .input {
   width: 50.5%;
 }
-
 .out-template {
   margin-top: 1em;
 }
-
 .out-template > input {
   width: 83%;
 }
 .out-template-path > input {
   width: 95%;
 }
-
 .grey {
   color: darkgrey;
 }
-
 .user-hint {
   color: var(--warning);
 }
-
 .centered {
   align-self: center;
 }

@@ -1,11 +1,14 @@
 import useValidatedState, { alphaNumericCheck, outputTemplateCheck } from '../validation'
-import { InfoJson } from '../../../electron-app/kum-6d6'
 import React, { ChangeEventHandler, useState } from 'react'
-import TextInput from './TextInput'
-import { Actions, fileObj } from '../App'
+import { InfoJson } from '../../../electron-app/kum-6d6'
 import { MSeedData } from '../../../electron-app/main'
+import { Actions, fileObj } from '../App'
+import TextInput from './TextInput'
 
+// Distinguish between systems in Ordner to separate paths with the correct notation.
 const pathSeparator = (systemOS: string) => systemOS === 'win32' ? '\\' : '/'
+const pad = (n: number) => (n < 10 ? '0' : '') + n
+const standardTemplate = 'out/%S/%y-%m-%d-%C'
 
 type MSeedProps = {
   systemOS: string,
@@ -13,22 +16,19 @@ type MSeedProps = {
   destPath: string,
   d6Info: InfoJson | null,
   srcFile: fileObj,
+  setHighlightTime: (value: string) => void,
   startProcessing: (data: MSeedData) => void,
-  setHighlightTime: Function,
 }
-const standardTemplate = 'out/%S/%y-%m-%d-%C'
 
-const pad = (n: number) => (n < 10 ? '0' : '') + n
-
-// Validation for cut input.
+// Validation for the 'cut' input.
 const cutCheck = (maxChar: number) => {
   const regExp = new RegExp(`^[0-9]{` + 3 + ',' + maxChar + `}$`)
   return (input: string) => regExp.test(input) && parseInt(input) >= 300
 }
 
-// Validation for channels input.
+// Validation for the channels input.
 const validateChannelsInput = (channelNr: number) => {
-  const channelRegExp = '[A-Za-z0-9]{1,3}'
+  const channelRegExp = /[A-Za-z0-9]{1,3}/
   const regExp = new RegExp(
     '^(' + channelRegExp + ',){' + (channelNr - 1) + '}' + channelRegExp + '$'
   )
@@ -87,18 +87,18 @@ const MSeed = ({
   destPath,
   d6Info,
   srcFile,
-  startProcessing,
-  setHighlightTime
+  setHighlightTime,
+  startProcessing
 }: MSeedProps) => {
   const [noDate, setNoDate] = useState<boolean>(false)
   const [noCut, setNoCut] = useState<boolean>(false)
   const [resample, setResample] = useState<boolean>(false)
   const [ignoreSkew, setIgnoreSkew] = useState<boolean>(false)
   const [timeChoice, setTimeChoice] = useState<'none' | 'both' | 'start' | 'end'>('none')
-  const [cut, setCut] = useValidatedState('86400', cutCheck(7))
-  const [station, setStation] = useValidatedState('', alphaNumericCheck(1, 5))
-  const [network, setNetwork] = useValidatedState('', alphaNumericCheck(0, 2))
-  const [location, setLocation] = useValidatedState('', alphaNumericCheck(0, 2))
+  const [cut, setCut] = useValidatedState<string>('86400', cutCheck(7))
+  const [station, setStation] = useValidatedState<string>('', alphaNumericCheck(1, 5))
+  const [network, setNetwork] = useValidatedState<string>('', alphaNumericCheck(0, 2))
+  const [location, setLocation] = useValidatedState<string>('', alphaNumericCheck(0, 2))
   const [startDate, setStartDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -108,23 +108,11 @@ const MSeed = ({
   )
   const [outputTemplate, setOutputTemplate] = useValidatedState<string>(standardTemplate, outputTemplateCheck())
 
-
-  /* const [outputTemplate, setOutputTemplate] = useState({
-    value: standardTemplate,
-    valid: true
-  }) */
-
   // Resetting the template.
   const setStandardTemplate = () => {
     setOutputTemplate(standardTemplate)
     document.getElementById('output-template')?.focus()
   }
-
-  /*
-  const setOutputTemplatePlusCheck = (value: string) => {
-    let tempBool = /%S/g.test(value)
-    setOutputTemplate({ value: value, valid: tempBool })
-  } */
 
   const resetAllInputs = () => {
     setStation('')
@@ -318,10 +306,9 @@ const MSeed = ({
             No Cut
             <input
               type='checkbox'
-/*               label='no-cut'
- */              checked={noCut}
+              checked={noCut}
               onChange={() => {
-                handleCheckboxChange(0)
+              handleCheckboxChange(0)
               }}
             />
             <span className='checkmark'></span>
@@ -330,10 +317,9 @@ const MSeed = ({
             Resample
             <input
               type='checkbox'
-/*               label='resample'
- */              checked={resample}
+              checked={resample}
               onChange={() => {
-                handleCheckboxChange(1)
+              handleCheckboxChange(1)
               }}
             />
             <span className='checkmark'></span>
@@ -342,10 +328,9 @@ const MSeed = ({
             Ignore Skew
             <input
               type='checkbox'
-/*               label='ignoreSkew'
- */              checked={ignoreSkew}
+              checked={ignoreSkew}
               onChange={() => {
-                handleCheckboxChange(2)
+              handleCheckboxChange(2)
               }}
             />
             <span className='checkmark'></span>

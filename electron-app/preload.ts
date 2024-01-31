@@ -1,7 +1,10 @@
+import { CopyData, MSeedData, ReadData, SegyData } from './main'
 import { ipcRenderer, contextBridge } from 'electron'
 import { Device } from './6d6watcher'
 import { InfoJson } from './kum-6d6'
-import { CopyData, MSeedData, ReadData, SegyData } from './main'
+
+// This file defines the API for the communication between
+// the frontend and the backend.
 
 type eventCallback = (event: any, ...data: any[]) => void
 

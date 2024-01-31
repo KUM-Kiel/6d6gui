@@ -1,38 +1,34 @@
 // Enhanced text inputs with different validity checks for dynamic specs.
+// See 'validation.ts' for more details.
 import React, { ChangeEventHandler } from "react"
 
 type TextInputProps = {
   value: string,
   valid: boolean,
   placeholder: string,
-/*   disabled: boolean,
- */  changeFunction: Function,
+  changeFunction: (value: string) => void,
 }
 
 const TextInput = ({
   value,
   valid = true,
   placeholder = '',
-  /* disabled = false, */
   changeFunction,
-}: TextInputProps	) => {
+}: TextInputProps) => {
 
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = e => {
     changeFunction(e.target.value)
   }
 
   return (
-/*     !disabled &&  */(
-      <div className={`input ${valid ? '' : 'error'}`}>
-        <label>{placeholder}</label>
-        <input
-          value={value}
-          onChange={handleInputChange}
-/*           disabled={disabled}
- */          type='text'
-        />
-      </div>
-    )
+    <div className={`input ${valid ? '' : 'error'}`}>
+      <label>{placeholder}</label>
+      <input
+        value={value}
+        onChange={handleInputChange}
+        type='text'
+      />
+    </div>
   )
 }
 

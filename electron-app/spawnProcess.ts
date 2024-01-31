@@ -245,9 +245,7 @@ export class TaskManager {
     }
     options.push(tempPath)
     const id = this.getId()
-    /*     const command = binInstalled ? '6d6mseed' :
-    pathos.join(__dirname, '/bin/6d6mseed')
-    console.log('-----------------------------------------', command) */
+
     console.log('6d6mseed with:', options)
     const p = new Process('6d6mseed', options, () => {
       this.tasks[id].finished = true
@@ -257,7 +255,6 @@ export class TaskManager {
     })
     p.stdoutToLines(line => {
       const { done, total, elapsed } = JSON.parse(line)
-      // TODO ?
       this.tasks[id].percentage = calcPercentage(done, total)
       this.tasks[id].eta = calcETA(done, total, elapsed)
       this.tasks[id].progress = formatBytes(done) + '/' + formatBytes(total)
@@ -278,7 +275,6 @@ export class TaskManager {
     }
     let convertedInsert = insert.replace('%S', data.station)
     convertedInsert.replace
-    // convertTemplate(dataate) - wofür war das nochmal gedacht?
     this.tasks[id] = {
       id,
       title: '6d6mseed',
@@ -293,7 +289,7 @@ export class TaskManager {
   $6d6segy (data: SegyData) {
     const id = this.getId()
     const pauser = new Pauser()
-    kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, data.traceDuration, pauser, (percentage: number, progress: string) => {
+    kum6D6ToSegy(data.srcPath6d6, data.targetLocation, data.srcPathShotfile, data.filenameSegy, data.traceDuration, data.lon, data.lat, pauser, (percentage: number, progress: string) => {
       this.tasks[id].percentage = percentage
       this.tasks[id].progress = progress
       this.update()
@@ -306,7 +302,6 @@ export class TaskManager {
       this.tasks[id].finished = true
       this.update()
       console.error(e)
-      //this.tasks[id].failed = true
     })
 
     this.actions[id] = action => {
@@ -341,8 +336,6 @@ export class TaskManager {
       finished: false,
       actions:  [pauser.paused ? 'continue' : 'pause', 'cancel']
     }
-    console.log("data stuff incoming spawnProcess: ", data)
-    console.log(this.tasks[id])
   }
 }
 

@@ -1,5 +1,4 @@
 // Handling of the theme-change.
-
 export const setTheme = (themeName: string) => {
   localStorage.setItem('theme', themeName)
   document.documentElement.className = themeName

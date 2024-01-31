@@ -1,6 +1,6 @@
 import { MetaFrameCallbacks, parseMetaFrame } from './6d6-meta-data-converter'
-import kum6D6HeaderRead, { Channel, Kum6d6Header } from './6d6-header'
 import combine6d6Headers, { Combined6d6Header } from './6d6-header-validation'
+import kum6D6HeaderRead, { Channel, Kum6d6Header } from './6d6-header'
 import TaiDate from './tai'
 import File from './file'
 
@@ -11,14 +11,15 @@ const isOdd = (n: number): boolean => {
 interface ReadCallbacks extends MetaFrameCallbacks {
   onSamples?: (samples: Int32Array) => void | Promise<void>
 }
-
+// Development legacy.
 const interpolate = (t0: bigint, t1: bigint, t: bigint, a0: number, a1: number): number => Number(t - t0) / Number(t1 - t0) * (a1 - a0) + a0
 
 const isCloseEnough = (found: TaiDate, searchedFor: TaiDate): boolean => {
   // Here you can define the parameter for either continue the search
   // or start reading the data. Now its set to 30 sec.
   let allowedDifference: number = 30 * 1e6
-  if (searchedFor.t - found.t < allowedDifference) {
+  let d = searchedFor.t - found.t
+  if (d > 0 && d <= allowedDifference) {
     return true
   }
   return false
@@ -48,7 +49,7 @@ export class Kum6D6 {
   sampleFrame: Int32Array
   metaView: DataView
 
-  constructor(file: File, combinedHeader: Combined6d6Header /* startTime: TaiDate, endTime: TaiDate */) {
+  constructor(file: File, combinedHeader: Combined6d6Header) {
     this.file = file
     this.position = 1024
     this.header = combinedHeader
@@ -59,64 +60,58 @@ export class Kum6D6 {
     this.sampleFrame = new Int32Array(combinedHeader.channels.length)
     this.metaView = new DataView(new ArrayBuffer(16))
   }
-
+/**
+ * 1 sample:      4 byte
+ * sample-frame:  4 byte * channels.length
+ *
+ * Before we try to read we adjust the reading position to the beginning of a
+ * frame.
+ *
+ */
   async binarySearch(value: TaiDate, startTime: TaiDate, endTime: TaiDate, startOffset: number, endOffset: number): Promise<TaiDate> {
     if (this.file === null) throw new Error('Already closed')
     if (endTime.t < startTime.t) throw new Error('End-position cannot be smaller than start-position')
+    if (value.t < startTime.t || value.t > endTime.t) throw new Error('Not in file')
 
-    // TODO: Shotfile seektime checkup for starttime < seektime <  endtime
-    // TODO: Checkup shotfile for legitimacy - incrementing shotnumbers, etc.
-
-    // Gemessen an SuchZeitpunkt und Dateigröße bzw. Bytelänge von Samples den ersten guess möglichst Nahe am gesuchten Zeitpunkt halten  #
-
-    // 1 sample: 4 byte
-    // sample-frame: 4 byte * channel.length
-    // bevor ich einlese sorge ich dafür, dass meine position durch 4 teilbar ist
-    // dann noch sichergehen, dass ich nicht MITTEN im Frame bin, sondern am Anfang eines Frames
-
-    // resync position:
-    // read int32 until an odd number after 4 even numbers is found.
-    // that odd number is the start of a meta frame.
-
-    let guessedReadingPosition: number = interpolate(startTime.t, endTime.t, value.t, startOffset, endOffset)
+    let guessedReadingPosition: number = startOffset + Math.floor((endOffset - startOffset) / 2)
     guessedReadingPosition = Math.floor(guessedReadingPosition / 4) * 4
-    // start reading a little bit earlier
-    guessedReadingPosition -= 1024 * 16
 
+    let position = guessedReadingPosition
+
+    // Make sure that the position is starting at the beginning of a frame.
     let synced: boolean = false
     let evenCounter: number = 0
     while (!synced) {
-      await this.file.read(this.position, this.word)
+      let temp = await this.file.read(position, this.word)
+      if (temp < 4) throw "EOF"
       if (isOdd(this.word.getInt32(0))) {
         if (evenCounter >= 4) {
           synced = true
         } else {
           evenCounter = 0
-          this.position += 4
+          position += 4
         }
       } else {
         evenCounter += 1
-        this.position += 4
+        position += 4
       }
     }
+    // As soon as we synced our position, the following frames are read.
+    this.position = position
     let found: boolean = false
     let foundOffset: number = 0
     let foundTime: TaiDate = new TaiDate()
     while (!found) {
       await this.read({
-        onTimeStamp: async (s, us) => {
-          // compare function for TaiDates?
-          foundTime = new TaiDate(this.header.startTime.t + BigInt(s) * 100000n + BigInt(us))
-          foundOffset = this.position
+        onTimeStamp: async (s, us, p) => {
+          foundTime = new TaiDate(this.header.startTime.t + BigInt(s) * 1000000n + BigInt(us))
+          foundOffset = p
           found = true
         }
       })
     }
     // foundOffset and foundTime are valid now.
-
-    let closeEnough: boolean = isCloseEnough(foundTime, value)
-
-    if (closeEnough) {
+    if (!isCloseEnough(foundTime, value)) {
       if (foundTime.t < value.t) {
         return this.binarySearch(value, foundTime, endTime, foundOffset, endOffset)
       } else {
@@ -124,7 +119,20 @@ export class Kum6D6 {
       }
     }
 
-    return foundTime
+    const sampleTime = BigInt(1e6 / this.header.sampleRate)
+
+    let t = foundTime.t
+    while (t < value.t) {
+      await this.read({
+        onSamples: async () => {
+          t += sampleTime
+        },
+        onTimeStamp: async (s, us) => {
+          t = BigInt(s) * 1000000n + BigInt(us) + this.header.startTime.t
+        }
+      })
+    }
+    return new TaiDate(t)
   }
 
   static async open(filename: string): Promise<Kum6D6> {
@@ -140,6 +148,7 @@ export class Kum6D6 {
     return new Kum6D6(file, combinedHeader)
   }
 
+  // Propper closing of the File(-handlers) - keeping the system safer.
   async close(): Promise<void> {
     if (this.file === null) throw new Error('Already closed')
     await this.file.close()
@@ -148,26 +157,26 @@ export class Kum6D6 {
 
   async read(callbacks: ReadCallbacks): Promise<boolean> {
     if (this.file === null) throw new Error('Already closed')
+    const p: number = this.position
     // Because ByteOrder is BigEndian, we can check for n % mod2 === 1.
-    if (await this.file.read(this.position, this.word) < 4) return false
+    if (await this.file.read(p, this.word) < 4) return false
     let t: number = this.word.getInt32(0)
     if (isOdd(t)) {
       // Check for end of recording.
       if (t === 13) return false
       // if not EoR, read the whole metaFrame.
-      if (await this.file.read(this.position, this.metaView) !== 16) return false
+      if (await this.file.read(p, this.metaView) !== 16) return false
       this.position += 16
-      // after successful read & increasing position - parse metaFrame.
-      await parseMetaFrame(this.metaView, callbacks)
+      // after successful read & increase of position - parse metaFrame.
+      await parseMetaFrame(this.metaView, callbacks, p)
     } else {
-      const p: number = this.position
       // Position increased by number of channels & channel size.
       this.position += (this.header.channels.length * 4)
       if (typeof callbacks.onSamples === 'function') {
         // Make sure the sampleData has the correct length.
         if (await this.file.read(p, this.sampleView) < this.header.channels.length * 4) return false
-        let samples: Int32Array = this.sampleFrame//new Int32Array(this.header.channels.length)
-        // Add read samples to sample-array and return via promise (?)
+        let samples: Int32Array = this.sampleFrame
+
         for (let i = 0; i < samples.length; ++i) {
           samples[i] = this.sampleView.getInt32(i * 4)
         }
@@ -177,30 +186,31 @@ export class Kum6D6 {
     return true
   }
 
-  // Function/Algorithm to seek specific time-points in the recording and
-  // retrieving the length of the requested frame
+/**
+ * Function/Algorithm to seek specific time-points in the recording and
+ * retrieving the length of the requested frame.
+ *
+ * metaFrame:   16-byte
+ * sample:      4-byte
+ * sampleframe: 4-byte * channel.length
+ **/
 
-  // metaFrame: 16-byte
-  // sample: 4-byte
-  // sampleframe: 4-byte channel.length
-
-  async seek(time: TaiDate): Promise<TaiDate> {
-    // how to retrieve start(is it after the two headers - 1024?) and end of file
-    return await this.binarySearch(time, this.header.startTime, this.header.endTime, this.header.startAddressData, this.header.endAddressData)
-    // Moves the file to the requested position
-    // Next call to read will yield the sample closest to `time`
+  seek(time: TaiDate): Promise<TaiDate> {
+    return this.binarySearch(time, this.header.startTime, this.header.endTime, this.header.startAddressData * 512, this.header.endAddressData * 512)
+    // Start/End Adress Data points to a sd-card memory-block and needs to be
+    // converted into 'bytes' by multiplying the value with 512.
+    // Moves the file to the requested position.
+    // Next call to read will yield the sample closest to `time`.
   }
 
-  // should it read metaFrames and make conclusions/assumptions?
   async readDesiredDuration(duration: number, instance: Kum6D6): Promise<void> {
-    // Duration in seconds?
     let iterations: number = this.header.sampleRate * duration
     let desiredSamples: Int32Array[] = []
     while (desiredSamples.length < iterations) {
       instance.read({
         onSamples: s => {
           desiredSamples.push(s)
-        },
+        }
       })
     }
   }
@@ -219,19 +229,6 @@ export class Kum6D6 {
       comment: this.header.comment
     }
   }
-}
-
-async function test() {
-  let test = await Kum6D6.open('../test.6d6')
-  console.log(test.header)
-  test.close()
-}
-
-if (require.main === module) {
-  test().catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
 }
 
 export default Kum6D6

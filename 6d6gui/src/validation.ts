@@ -8,7 +8,7 @@ export const alphaNumericCheck = (minChar: number, maxChar: number) => {
 
 // Validation for solely numeric inputs.
 export const numericCheck = (minValue: number, maxValue: number) => {
-  const regExp = new RegExp(`^[0-9]+$`)
+  const regExp = /^[0-9]+$/
   return (input: string) => {
     if (!regExp.test(input)) return false
     let v = BigInt(input)
@@ -16,10 +16,21 @@ export const numericCheck = (minValue: number, maxValue: number) => {
   }
 }
 
+// Validation for solely numeric inputs.
+export const numericCheckFloat = (minValue: number, maxValue: number) => {
+  const regExp = /^[+-]?[0-9]+(\.[0-9]+)?$/
+  return (input: string) => {
+    if (!regExp.test(input)) return false
+    let v = Number(input)
+    return minValue <= v && v <= maxValue
+  }
+}
+
 // Validation for the MSeed output template.
-// Including the '%S' is mandatory for MSeed, because the station-code is mandatory as well.
+// Including the '%S' is mandatory for MSeed, because the station-code is
+// mandatory as well.
 export const outputTemplateCheck = () => {
-  const regExp = new RegExp(`^[A-Za-z0-9-_.%/]+$`)
+  const regExp = /^[A-Za-z0-9-_.%/]+$/
   const regExpStation = new RegExp(`%S`)
   return (input: string) => regExp.test(input) && regExpStation.test(input)
 }
@@ -35,7 +46,7 @@ export interface ValidatedValue<T> {
   valid: boolean
 }
 
-// aus 't' ein 'T' gemacht @ [...,(value: t) => void]
+// Changed 't' to 'T' @ [...,(value: t) => void]
 export const useValidatedState = <T,>(initialValue: T, validator: (value: T) => boolean): [ValidatedValue<T>, (value: T) => void] => {
   const [v, s] = useState({
     value: initialValue,

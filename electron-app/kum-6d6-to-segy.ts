@@ -1,37 +1,80 @@
-import { readShotfile } from './shotfile-parser'
+import { readShotfile, Shot } from './shotfile-parser'
 import { SegyWriter } from './segy-writer'
+import { earthDistance } from './geodesy'
 import Kum6D6 from './kum-6d6'
+import TaiDate from './tai'
 
-import path from 'path'
 import { Pauser } from './pauser'
+import path from 'path'
 
-// For testing purposes.
-const rnd = () => Math.random() - Math.random() + Math.random() - Math.random()
+const checkShotFileIntergrity = (shotFile: Shot[], startTimeRec: TaiDate, endTimeRec: TaiDate): boolean => {
+  for (let i = 0; i < shotFile.length; ++i) {
+    if (shotFile[i].shotNr !== i + shotFile[0].shotNr)
+      throw "ShotFile ShotNr. not consecutive."
+  }
+  if (startTimeRec.valueOf() >= shotFile[0].time.valueOf())
+    throw "Shots begin before the recording even started."
 
-// generate seg-y files
-export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, locationShotfile: string, filenameSegy: string, traceDuration: number,pauser: Pauser,   onUpdate: (percentage: number, progress: string) => void) => {
+  if (endTimeRec.valueOf() <= shotFile[shotFile.length - 1].time.valueOf())
+    throw "The last shot is fired after the end of the recording."
+
+  return true
+}
+
+// Generate SEG-Y files utilizing binary search.
+export const kum6D6ToSegy = async (
+  location6d6: string,
+  locationTarget: string,
+  locationShotfile: string,
+  filenameSegy: string,
+  traceDuration: number,
+  lon: number,
+  lat: number,
+  pauser: Pauser,
+  onUpdate: (percentage: number, progress: string) => void) => {
+
   const file = await Kum6D6.open(location6d6)
   const segyFiles: SegyWriter[] = []
-
   try {
     const traceLength = traceDuration * file.header.sampleRate
     const channels = file.header.channels
-
     for (let i = 0; i < channels.length; ++i) {
       segyFiles[i] = await SegyWriter.create(path.join(locationTarget, filenameSegy + '-' + channels[i].name + '.segy'))
       await segyFiles[i].writeHeader(file.header, traceLength)
     }
-    // shot in shotfile - parser, read shots per line
-    // compare timestamp to 6d6file
-    // every shotfile-line shall be a trace from .6d6
 
-    // write file headers
     const shotFile = await readShotfile(locationShotfile)
+
+    if (!checkShotFileIntergrity(shotFile, file.fileMetaDataStart, file.fileMetaDataEnd)) {
+      for (let i = 0; i < segyFiles.length; ++i) {
+        segyFiles[i].close()
+      }
+      file.close()
+      throw "The ShotFile is corrupted."
+    }
+
+    // Calculate distances
+    let minimum = -1
+    for (let i = 0; i < shotFile.length; ++i) {
+      let d = earthDistance(shotFile[i].lon, shotFile[i].lat, lon, lat)
+      if (minimum >= 0 && shotFile[minimum].distance > d) minimum = i
+      shotFile[i].distance = d
+    }
+    if (minimum > 0 && minimum + 1 < shotFile.length) {
+      if (shotFile[minimum - 1].distance > shotFile[minimum + 1].distance) {
+        minimum += 1
+      }
+    }
+    for (let i = 0; i < minimum; ++i) {
+      shotFile[i].distance *= -1
+    }
+    // Convert data
     for (let i = 0; i < shotFile.length; ++i) {
       onUpdate(100 * i / shotFile.length, i + '/' + shotFile.length + ' shots processed')
-      // relocate 'write to trace' because of read information from meta-data?
-      // such as: timestamp, temperature, voltage humidity?
+
       const shot = shotFile[i]
+      await file.seek(shot.time)
+
       for (let j = 0; j < segyFiles.length; ++j) {
         await segyFiles[j].writeTraceHeader({
           numSamplesInThisTrace: traceLength,
@@ -51,6 +94,7 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
           secondOfMinute: shot.time.sec(),
           timeBasisCode: 'utc',
           shotpointNumber: shot.shotNr,
+          distCenterSrcToCenterReceiver: shotFile[i].distance,
         })
       }
       let sampleFrames = 0
@@ -84,8 +128,7 @@ export const kum6D6ToSegy = async (location6d6: string, locationTarget: string, 
         })) throw new Error('File too short')
         await pauser.whilePaused()
       }
-      console.log({done:i})
-
+      //console.log({ done: i })
     }
     onUpdate(100, shotFile.length + '/' + shotFile.length + ' shots processed')
   } finally {

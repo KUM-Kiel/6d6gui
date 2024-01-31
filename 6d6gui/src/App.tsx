@@ -13,8 +13,6 @@ import Header from './components/Header'
 import D6Info from './components/D6Info'
 import './App.css'
 
-//const { ipcRenderer } = window.require('electron')
-
 type eventCallback = (event: any, ...data: any[]) => void
 declare global {
   interface Window {
@@ -60,30 +58,35 @@ export default function App() {
   const [storages, setStorages] = useState<Device[]>([])
   const [extDevice, setExtDevice] = useState<Device | null>(null)
   const [taskList, setTaskList] = useState<Task[]>([])
-
   const [d6Info, set6d6Info] = useState<InfoJson | null>(null)
   const [srcFile, setSrcFile] = useState<fileObj>({ filepath: '', file: '', ext: '' })
-  const [shotfile, setShotfile] = useState<string>('')
-  const [filename, setFilename] = useValidatedState<string>('', filenameCheck(1, 100))
-  const [fileChoice, setFileChoice] = useState<string | null>(null)
-  const [targetDirectory, setTargetDirectory] = useState<string>('')
 
-  // If something has to be changed in 'menuList', keep 'switchContent' & Content.tsx in mind.
+  const [shotfile, setShotfile] = useState<string>('')
+  const [targetDirectory, setTargetDirectory] = useState<string>('')
+  const [fileChoice, setFileChoice] = useState<string | null>(null)
+
+  const [filename, setFilename] = useValidatedState<string>('', filenameCheck(1, 100))
+  // If something has to be changed in 'menuList', keep 'switchContent' &
+  // Content.tsx in mind.
   const [activeMenuItem, setActiveMenuItem] = useState<number>(0)
   const menuList: MenuElement[] = [
-    { title: 'SEG-Y', show: () => true },
+
+/*  Frontend dev-mode:
     { title: 'MSeed', show: (os, devices) => true },
     { title: 'Read', show: (os, devices) => true },
-    { title: 'Copy', show: (os, devices) => true },
-    /*     { title: 'MSeed', show: (os) => os !== 'win32' },
-        { title: 'Read', show: (os) => os !== 'win32' },
-        { title: 'Copy', show: (os, devices) => os !== 'win32' && devices > 0 }, */
+    { title: 'Copy', show: (os, devices) => true }, */
+
+    // Production
+    { title: 'SEG-Y', show: () => true },
+    { title: 'MSeed', show: (os) => os !== 'win32' },
+    { title: 'Read', show: (os) => os !== 'win32' },
+    { title: 'Copy', show: (os, devices) => os !== 'win32' && devices > 0 },
   ]
 
-  // After picking a new file, the once manually chosen targetDirectory won't be automatically adapted to the directory pf the src file.
+  // After picking a new file, the once manually chosen targetDirectory won't be automatically adapted to the directory of the src file.
   let targetDirectoryFlag = false
 
-  // Returns the drives/directories useable for 6d6copy.
+  // Returns the drives/directories useable for 6d6copy & others as a source.
   const getDeviceInfo = (selected: Device): Device | null => {
     if (d6Info === null) return null
     if (fileChoice === null && srcFile.filepath !== '') {
@@ -133,15 +136,15 @@ export default function App() {
     targetDirectoryFlag = true
   }
 
-  // Forwarding an action trigger to the backend. -- ?!
+  // Forwarding an action trigger to the backend.
   const triggerAction = async (id: string, action: string): Promise<void> => {
     let actionTriggered = await window.ipcRenderer.taskAction(id, action)
-    console.log(actionTriggered)
+    console.log({actionTriggered})
   }
 
   const triggerConversion = async (data: MSeedData | ReadData | CopyData | SegyData): Promise<void> => {
     let temp = await window.ipcRenderer.triggerConversion(data)
-    // How about throwing a dialog-window to display the error?
+    // FutureTODO: How about throwing a dialog-window to display the error?
     console.log(temp)
   }
 
@@ -149,7 +152,6 @@ export default function App() {
   useEffect(() => {
     window.ipcRenderer.on('device-list', (e: Event, devices: Device[], systemOS?: string) => {
       setStorages(devices)
-
       if (systemOS !== undefined) setSystemOS(systemOS)
     })
     keepTheme()
@@ -179,7 +181,8 @@ export default function App() {
     setActiveMenuItem(id)
   }
 
-  // As soon as something changes regarding a 6d6 device or file, the information about the chosen entity gets updated.
+  // As soon as something changes regarding a 6d6 device or file, the
+  // information about the chosen entity gets updated.
   const triggerInfoChange = (filename: Device): void => {
     setFileChoice(filename.name)
     setExtDevice(getDeviceInfo(filename))
@@ -191,11 +194,11 @@ export default function App() {
       <Header title={'K.U.M. 6D6 Suite'} />
       <MenuRow
         menu={menuList}
-        activeMenuItem={activeMenuItem}
         directories={storages}
-        changeContent={switchContent}
-        setAppDarkMode={setAppDarkMode}
         systemOS={systemOS}
+        activeMenuItem={activeMenuItem}
+        setAppDarkMode={setAppDarkMode}
+        changeContent={switchContent}
       />
       <div className='app-container'>
         <div className='app-content'>

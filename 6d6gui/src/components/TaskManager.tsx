@@ -11,7 +11,6 @@ type TaskManagerProps = {
 // UI for the whole TaskManager content i.e. tasks.
 const TaskManager = ({ taskList, triggerAction, appDarkMode }: TaskManagerProps) => {
   const activateAction = (id: string, action: string) => {
-    console.log('maybe this muppet is actually triggering')
     triggerAction(id, action)
   }
   if (taskList.length === 0) {

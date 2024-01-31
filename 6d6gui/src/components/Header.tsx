@@ -1,6 +1,7 @@
 // Header of the Application.
 import React from "react"
 
+// Header Component - might be a complete  overkill.
 const Header = ({ title }: {title:string}) => {
   return (
     <div >

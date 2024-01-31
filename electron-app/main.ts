@@ -11,7 +11,6 @@ import fs from 'fs'
 const execFileAsync = util.promisify(execFile)
 const systemOS = process.platform
 
-
 export interface FileErrorData {
   type: string,
   message: string
@@ -32,17 +31,13 @@ function createWindow() {
     }
   })
 
-  // old: mainWindow.loadURL(startURL)
-  // TODO: fixup
   if (app.isPackaged) {
     mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html')); // prod
   } else {
     mainWindow.loadURL('http://localhost:3000'); // dev
-    //mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
   }
 
   // Toggles the menuBar & avaiability of the devtools.
-  /* mainWindow.removeMenu() */
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
   })
@@ -51,8 +46,6 @@ function createWindow() {
   })
   mainWindow.on('reload', () => { })
 }
-
-//app.on('ready', createWindow)
 
 app.whenReady().then(() => {
   createWindow()
@@ -66,30 +59,27 @@ app.on('window-all-closed', () => {
 
 // Checks for the existence of the 6d6compat on the local device.
 const checkForBinaries = () => {
-  // for Linux: Worth a thought to deliver the binaries with the ui instead of checking for them on the system.
+  // for Linux: Worth a thought to deliver the binaries with the ui instead
+  // of checking for them on the system.
   return fs.existsSync('/usr/local/bin/6d6info')
 }
-
 const binariesInstalled: boolean = checkForBinaries()
 
-// Broadcasting something across the whole application.
+// Broadcasting 'something' across the whole application.
 const broadcast = (ev: string, data: Object) => {
   const windows = BrowserWindow.getAllWindows()
   for (let i = 0; i < windows.length; ++i) {
     windows[i].webContents.send(ev, data)
   }
 }
-
 // Sets up the watcher to broadcast the list of found devices.
 const deviceList = Watcher((list: Device[]) => {
   broadcast('device-list', list)
 })
-
 // Initialization of the deviceList on startup of the application.
 ipcMain.on('start-up', (event: any) => {
   event.reply('device-list', deviceList(), systemOS)
 })
-
 // Checks whether a file in a specific directory already exists.
 const checkForFileExistence = async (path: string): Promise<boolean> => {
   try {
@@ -100,6 +90,7 @@ const checkForFileExistence = async (path: string): Promise<boolean> => {
   }
 }
 
+// Open up the system-dialogue to visually pick a file/folder.
 ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
   let window = BrowserWindow.fromWebContents(event.sender)
   if (window === null) return null
@@ -115,6 +106,7 @@ ipcMain.handle('chooseFile', async (event, name, extensions, directory) => {
   return result.filePaths
 })
 
+// Retrieve 6d6-header information and send it to the frontend.
 ipcMain.handle('6d6info', async (event, filepath: string) => {
   if (systemOS === 'win32') {
     let r = await Kum6D6.open(filepath)
@@ -146,7 +138,6 @@ export interface CopyData {
   targetDirectory: string
   filenameCopy: string,
 }
-
 // Handling the UI request for a 6d6Copy command.
 ipcMain.handle('6d6copy', (event: any, data: CopyData) => {
   let tempPath = path.join(data.targetDirectory, data.filenameCopy)
@@ -171,7 +162,6 @@ export interface ReadData {
   targetDirectory: string,
   filenameRead: string
 }
-
 // Handling the UI request for a 6d6Read command.
 ipcMain.handle('6d6read', async (event: any, data: ReadData) => {
   const from = data.srcPath
@@ -207,7 +197,6 @@ export interface MSeedData {
   endTime: string,
   timeChoice: 'none' | 'both' | 'start' | 'end'
 }
-
 // Handling the UI request for a 6d6MSeed command.
 ipcMain.handle('6d6mseed', (event: any, data: MSeedData) => {
   if (!checkForFileExistence(path.join(data.srcFilepath, 'out', data.station))) {
@@ -228,16 +217,12 @@ export interface SegyData {
   srcPath6d6: string,
   srcPathShotfile: string,
   targetLocation: string,
+  lon: number,
+  lat: number
 }
-
+// Handling the UI request for a 6d6Segy command.
 ipcMain.handle('6d6segy', async (event: any, data: SegyData) => {
-  /* console.log(data) */
-
   let tempPath = path.join(data.targetLocation, data.filenameSegy)
-
-  console.log("Here's the tempPath: ", tempPath)
-  console.log("Here's the fileExistence result22: ", await checkForFileExistence(tempPath))
-
   if (await checkForFileExistence(tempPath)) {
     return {
       error: true,

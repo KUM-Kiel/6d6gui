@@ -1,12 +1,12 @@
 import TaiDate from './tai'
 
-/// Interface for Channel typing
+// Interface for Channel typing
 export interface Channel {
   name: string,
   gain: number,
 }
 
-/// Interface for the signature of a .6d6 Header
+// Interface for the signature of a .6d6 Header
 export interface Kum6d6Header {
   version: 1 | 2,
   time: TaiDate,
@@ -28,9 +28,7 @@ export interface Kum6d6Header {
 
 export const malformedMessage = 'Malformed 6D6 Header.'
 
-/// Helper Functions
-
-/// Byte-number to int-number converison with validation.
+// Byte-number to int-number converison with validation.
 const bcdToInt = (b: number) => {
   let ones = (b & 15)
   let tens = ((b >> 4) & 15)
@@ -41,14 +39,14 @@ const bcdToInt = (b: number) => {
   return (ones + tens * 10)
 }
 
-/// Check the offset to not exceed the value 512.
+// Check the offset to not exceed the value 512.
 export const limit512 = (x: number) => {
   if (x > 512) throw new Error(malformedMessage)
   return x
 }
 
-/// Reads a String of values until a 'zero' is found and
-/// returns the read string plus the accumulated offset.
+// Reads a String of values until a 'zero' is found and
+// returns the read string plus the accumulated offset.
 const readStringZero = (block: DataView, o: number): [string, number] => {
   let a: number[] = []
   while (block.getUint8(o) !== 0) {
@@ -62,9 +60,9 @@ const readStringZero = (block: DataView, o: number): [string, number] => {
   return [new TextDecoder().decode(new Uint8Array(a)), o]
 }
 
-/// Checks for a block at a given offset whether a string
-/// matches the read value.
-/// Returns an increased offset.
+// Checks for a block at a given offset whether a string
+// matches the read value.
+// Returns an increased offset.
 export const memoryCompare = (block: DataView, o: number, value: string): number => {
   if (!str(block, o, value)) {
     throw new Error(malformedMessage)
@@ -73,7 +71,7 @@ export const memoryCompare = (block: DataView, o: number, value: string): number
   return o
 }
 
-/// Checks whether a block at a given offset matches a string.
+// Checks whether a block at a given offset matches a string.
 export const str = (block: DataView, offset: number, value: string): boolean => {
   for (let i = 0; i < value.length; ++i) {
     if (block.getUint8(offset + i) !== value.charCodeAt(i)) return false
@@ -81,7 +79,7 @@ export const str = (block: DataView, offset: number, value: string): boolean => 
   return true
 }
 
-/// Reads the value for a bcd-time an converts it properly.
+// Reads the value for a bcd-time an converts it properly.
 export const readBcdTime = (block: DataView, offset: number): TaiDate | null => {
   try {
     let hour = bcdToInt(block.getUint8(offset))
@@ -101,12 +99,11 @@ export const readBcdTime = (block: DataView, offset: number): TaiDate | null => 
   }
 }
 
-/// Reads and returns an entire .6d6 header.
+// Reads and returns an entire .6d6 header.
 export const kum6D6HeaderRead = (block: DataView): Kum6d6Header => {
   if (block.byteLength < 512) {
     throw new Error('Block too short.')
   }
-
   let o = 0
   let version: Kum6d6Header['version'] = 1
   if (str(block, o, '6D6\u0002')) {
@@ -122,7 +119,6 @@ export const kum6D6HeaderRead = (block: DataView): Kum6d6Header => {
 
   // SyncType and Sync/Skew time
   let syncType: Kum6d6Header['syncType'] = null
-
   if (str(block, o, 'skew')) {
     syncType = 'skew'
   } else if (str(block, o, 'sync')) {
@@ -182,36 +178,36 @@ export const kum6D6HeaderRead = (block: DataView): Kum6d6Header => {
   // Serial number of the datalogger.
   o = memoryCompare(block, o, 'rcid')
   let recorderID: string
-  ;[recorderID, o] = readStringZero(block, o)
+    [recorderID, o] = readStringZero(block, o)
 
   // RTC serial number.
   o = memoryCompare(block, o, 'rtci')
   let rtcID: string
-    ;[rtcID, o] = readStringZero(block, o)
+    [rtcID, o] = readStringZero(block, o)
 
   // Latitude at the syncTime in text form.
   o = memoryCompare(block, o, 'lati')
   let latitude: string
-    ;[latitude, o] = readStringZero(block, o)
+    [latitude, o] = readStringZero(block, o)
 
   // Longitude at the syncTime in text form.
   o = memoryCompare(block, o, 'logi')
   let longitude: string
-    ;[longitude, o] = readStringZero(block, o)
+    [longitude, o] = readStringZero(block, o)
 
   // The channel names - each channel has to have a name.
   let channels: Channel[] = []
   o = memoryCompare(block, o, 'alia')
   for (let i = 0; i < channelCount; ++i) {
     let name: string
-      ;[name, o] = readStringZero(block, o)
+      [name, o] = readStringZero(block, o)
     channels.push({ name, gain: gains[i] })
   }
 
   // Free-form text comment for the recording.
   o = memoryCompare(block, o, 'cmnt')
   let comment: string
-    ;[comment, o] = readStringZero(block, o)
+    [comment, o] = readStringZero(block, o)
 
   if (o != 512) {
     throw new Error(malformedMessage)
@@ -238,11 +234,6 @@ export const kum6D6HeaderRead = (block: DataView): Kum6d6Header => {
     channels,
     comment,
   }
-}
-
-if (require.main === module) {
-  let testHeader = new Uint8Array([116, 105, 109, 101, 18, 32, 57, 7, 7, 32, 115, 121, 110, 99, 9, 55, 83, 1, 7, 32, 0, 0, 0, 0, 97, 100, 100, 114, 0, 0, 0, 2, 114, 97, 116, 101, 0, 250, 119, 114, 105, 116, 0, 0, 0, 0, 0, 0, 0, 0, 108, 111, 115, 116, 0, 0, 0, 0, 99, 104, 97, 110, 4, 103, 97, 105, 110, 10, 10, 10, 10, 98, 105, 116, 100, 32, 114, 99, 105, 100, 54, 49, 54, 48, 55, 49, 51, 51, 0, 114, 116, 99, 105, 49, 56, 48, 50, 57, 57, 0, 108, 97, 116, 105, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 108, 111, 103, 105, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0, 97, 108, 105, 97, 72, 0, 88, 0, 89, 0, 90, 0, 99, 109, 110, 116, 66, 117, 110, 107, 101, 114, 32, 72, 89, 68, 32, 51, 49, 50, 49, 53, 53, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-  console.log(kum6D6HeaderRead(new DataView(testHeader.buffer)))
 }
 
 export default kum6D6HeaderRead

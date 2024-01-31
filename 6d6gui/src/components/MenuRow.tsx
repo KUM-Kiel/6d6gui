@@ -7,15 +7,15 @@ import React from "react"
 
 type MenuColumnProps = {
   menu: MenuElement[],
-  changeContent: (id: number) => void,
   directories: Device[],
-  setAppDarkMode: (value: boolean) => void,
   systemOS: string,
   activeMenuItem: number,
+  setAppDarkMode: (value: boolean) => void,
+  changeContent: (id: number) => void,
 }
 
 // Top menu to choose between the different 6D6 suites (and a theme toggle).
-const MenuRow = ({ menu, changeContent, directories, setAppDarkMode, systemOS, activeMenuItem }: MenuColumnProps) => {
+const MenuRow = ({ menu, directories, systemOS, activeMenuItem, setAppDarkMode, changeContent }: MenuColumnProps) => {
   const [togClass, setTogClass] = useState('light')
   const [darkMode, setDarkMode] = useState(true)
   let theme = localStorage.getItem('theme')

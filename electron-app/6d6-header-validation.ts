@@ -1,12 +1,10 @@
 import { Kum6d6Header, Channel } from './6d6-header'
 import TaiDate from './tai'
 
-///
 export interface ClockError {
   time: TaiDate,
   deviation: number
 }
-
 export interface Position {
   latitude: string,
   longitude: string
@@ -35,22 +33,17 @@ export interface Combined6d6Header {
 }
 
 export const combine6d6Headers = (headerOne: Kum6d6Header, headerTwo: Kum6d6Header): Combined6d6Header => {
-  console.log([headerOne, headerTwo])
-
   if (headerOne.version !== headerTwo.version)
     throw new Error('Mismatching versions.')
   if (headerOne.syncType !== 'sync')
     throw new Error('Invalid sync type.')
   if (headerTwo.syncType !== 'skew' && headerTwo.syncType !== null)
     throw new Error('Invalid skew type.')
-
   if (headerOne.syncTime === null)
     throw new Error('Invalid sync time.')
 
   let skew: ClockError | null = null
   if (headerTwo.syncType === 'skew' && headerTwo.syncTime !== null) {
-    //if (headerTwo.syncTime === null)
-    //  throw new Error('Invalid skew time.')
     skew = {
       time: headerTwo.syncTime,
       deviation: headerTwo.skew

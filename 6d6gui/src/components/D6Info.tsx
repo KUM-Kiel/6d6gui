@@ -11,7 +11,6 @@ type D6InfoProps = {
 }
 // Showing the formatted 6D6Info between the deviceList & main content.
 const D6Info = ({ d6Info, fileChoice, srcFile, highlightTime }: D6InfoProps) => {
-
   let startHighlight = false
   let endHighlight = false
 
@@ -30,7 +29,6 @@ const D6Info = ({ d6Info, fileChoice, srcFile, highlightTime }: D6InfoProps) => 
       endHighlight = true
     }
   }
-
   const pad = (n: number) => (n < 10 ? '0' : '') + n
   const showFormattedDate = (date: string, type: string) => {
     let temp = new Date(date)

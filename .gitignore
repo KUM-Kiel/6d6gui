@@ -4,6 +4,8 @@ build/
 dist/
 6d6gui-win
 6d6gui-linux
+electron-app/memoryleak.js
+electron-app/testfileBSearch.js
 
 *.zip
 

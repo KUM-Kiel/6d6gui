@@ -1,10 +1,10 @@
 {
   "name": "6d6gui",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "A GUI for the use of the 6d6-compat",
   "main": "./dist/main.js",
   "scripts": {
-    "test": "lol",
+    "test": "check check die 1",
     "comment": "react build to app/frontend && copy to app && electron app",
     "start": "tsc && electron-forge start",
     "package": "electron-forge package",

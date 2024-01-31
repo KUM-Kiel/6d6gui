@@ -2,13 +2,15 @@
 import { Device } from "../../../electron-app/6d6watcher"
 import React from "react"
 
+// Defining the structure of the Props for the FileList-page.
 type FileListProps = {
   dirList: Device[],
-  changeFile: Function,
+  changeFile: (filename: Device) => void,
   fileChoice: string | null,
-  switchContent: Function
+  switchContent: (id: number) => void
 }
 
+// The FileList component with interactions for external devices formatted by a 6D6.
 const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListProps) => {
   return (
     <div>
@@ -24,7 +26,7 @@ const FileList = ({ dirList, changeFile, fileChoice, switchContent }: FileListPr
                   onChange={() => {
                     // Switch to 'Copy' Menu, if file from filelist was chosen.
                     switchContent(3)
-                    changeFile(obj.name)
+                    changeFile(obj)
                   }}
                   checked={obj.name === fileChoice}
                   value={obj.name}

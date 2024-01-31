@@ -1,3 +1,5 @@
+// This class can be used to put different kind of events into a 'paused' state.
+
 export class Pauser {
   paused: boolean
   cancelled: boolean

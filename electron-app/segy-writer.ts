@@ -1,15 +1,22 @@
-import fs from 'fs'
+import { Combined6d6Header } from './6d6-header-validation'
+
 import util from 'util'
+import fs from 'fs'
 
 const fsopen = util.promisify(fs.open)
-const fsread = util.promisify(fs.read)
 const fsclose = util.promisify(fs.close)
 const fswrite = util.promisify(fs.write)
 
-import { Combined6d6Header } from './6d6-header-validation'
-
 // sourcecode safe ebcdic converter
 const ebcdic = (s: string) => new Uint8Array(Array.from(s).map(c => '\x20\xa0\xe2\xe4\xe0\xe1\xe3\xe5\xe7\xf1\xa2\x2e\x3c\x28\x2b\x7c\x26\xe9\xea\xeb\xe8\xed\xee\xef\xec\xdf\x21\x24\x2a\x29\x3b\xac\x2d\x2f\xc2\xc4\xc0\xc1\xc3\xc5\xc7\xd1\xa6\x2c\x25\x5f\x3e\x3f\xf8\xc9\xca\xcb\xc8\xcd\xce\xcf\xcc\x60\x3a\x23\x40\x27\x3d\x22\xd8\x61\x62\x63\x64\x65\x66\x67\x68\x69\xab\xbb\xf0\xfd\xfe\xb1\xb0\x6a\x6b\x6c\x6d\x6e\x6f\x70\x71\x72\xaa\xba\xe6\xb8\xc6\xa4\xb5\x7e\x73\x74\x75\x76\x77\x78\x79\x7a\xa1\xbf\xd0\xdd\xde\xae\x5e\xa3\xa5\xb7\xa9\xa7\xb6\xbc\xbd\xbe\x5b\x5d\xaf\xa8\xb4\xd7\x7b\x41\x42\x43\x44\x45\x46\x47\x48\x49\xad\xf4\xf6\xf2\xf3\xf5\x7d\x4a\x4b\x4c\x4d\x4e\x4f\x50\x51\x52\xb9\xfb\xfc\xf9\xfa\xff\x5c\xf7\x53\x54\x55\x56\x57\x58\x59\x5a\xb2\xd4\xd6\xd2\xd3\xd5\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\xb3\xdb\xdc\xd9\xda'.indexOf(c)).map(c => c < 0 ? 0x40 : c + 0x40))
+
+/**
+ * This File defines the structure and names for the file- and trace-header
+ * including the default values and whether a property is mandatory or not.
+ *
+ *
+ */
+
 
 interface SegyBinaryHeader {
   jobIdentificationNumber?: number,
@@ -161,8 +168,6 @@ export class SegyWriter  {
     this.bufferPosition = 0
     this.sampleBytes = new Uint8Array(4)
     this.sampleView = new DataView(this.sampleBytes.buffer)
-    console.log(this.fd)
-    console.log(typeof this.fd)
   }
 
   createTextHeader(lines: string[]) {
@@ -275,9 +280,11 @@ export class SegyWriter  {
     segyHeader.setInt32(4, fields.traceSequenceNumWithinFile)
     segyHeader.setInt32(8, fields.ogFieldRecordNum || 1)
     segyHeader.setInt32(12, fields.traceNumOgFieldRecord || 0)
-    // Because this software will mostly be used for see-use, the following
+
+    // Because this software will mostly be used for sea-use, the following
     // values will be set to the same value as the sequence number within a line.
     // -> only used for refraction-seismics
+
     // segyHeader.setInt32(16, fields.energySourcePointNumber || 0)
     segyHeader.setInt32(16, fields.traceSequenceNumWithinLine || 0)
     // segyHeader.setInt32(20, fields.ensembleNumber || 0)
@@ -294,7 +301,7 @@ export class SegyWriter  {
     segyHeader.setInt32(36, fields.distCenterSrcToCenterReceiver || 0)
     segyHeader.setInt32(40, fields.elevationReceiverGroup || 0)
     segyHeader.setInt32(44, fields.surfaceElevationSrcLocation || 0)
-    segyHeader.setInt32(48, fields.srcDepthBelowSurface || 0) // user input!!
+    segyHeader.setInt32(48, fields.srcDepthBelowSurface || 0)
     segyHeader.setInt32(52, fields.seismicDatumElevationReciever || 0)
     segyHeader.setInt32(56, fields.seismicDatumElevationSource || 0)
     segyHeader.setInt32(60, fields.waterColHeightSrcLocation || 0)
@@ -316,7 +323,7 @@ export class SegyWriter  {
     segyHeader.setInt16(94, fields.upholeTimeSrcInMs || 0)
     segyHeader.setInt16(96, fields.upholeTimeGroupInMs || 0)
     segyHeader.setInt16(98, fields.srcStaticCorrectionMs || 0)
-    segyHeader.setInt16(100, fields.groupStaticCorrectionMs || 0) // user input ?!
+    segyHeader.setInt16(100, fields.groupStaticCorrectionMs || 0)
     segyHeader.setInt16(102, fields.totalStaticAppliedMs || 0)
     segyHeader.setInt16(104, fields.lagTimeA || 0)
     segyHeader.setInt16(106, fields.lagTimeB || 0)
@@ -368,7 +375,7 @@ export class SegyWriter  {
       'gmt': 2,
       'other': 3,
       'utc': 4,
-      'gps': 5 }[fields.timeBasisCode]) // why Other?!?!
+      'gps': 5 }[fields.timeBasisCode])
     segyHeader.setInt16(168, fields.traceWeightingFactor || 0)
     segyHeader.setInt16(170, fields.geophoneGroupNumRollSwitchOne || 0)
     segyHeader.setInt16(172, fields.geophoneGroupNumtraceNumOne || 1)
@@ -460,8 +467,10 @@ export class SegyWriter  {
   }
 
   async writeHeader(d6Header: Combined6d6Header, numberSamplesPerDataTrace: number): Promise<void> {
+    // FutureTODO:
+    // Changes for Textual Header, perhaps an input field for the user?
     await this.write(this.createTextHeader(['ja moin']))
-    await this.write(this.createBinaryHeader({ //???
+    await this.write(this.createBinaryHeader({
       numberSamplesPerDataTrace,
       sampleIntervalUs: Math.round(1000000 / d6Header.sampleRate),
       sampleIntervalOrigRecordingUs: Math.round(1000000 / d6Header.sampleRate),
@@ -485,20 +494,3 @@ export class SegyWriter  {
     this.fd = null
   }
 }
-/*
-
-const test = async () => {
-  let writer: SegyWriter = await SegyWriter.create('test.segy')
-  writer.createTextHeader(['No text for you'])
-
-  console.log(writer)
-}
-
-
-if (require.main === module) {
-  test().catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
-}
- */

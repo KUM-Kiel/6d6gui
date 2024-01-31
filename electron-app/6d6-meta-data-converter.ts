@@ -1,10 +1,8 @@
 import { readBcdTime } from './6d6-header'
 import TaiDate from './tai'
 
-/// bruder massives interface
-
 export interface MetaFrameCallbacks {
-  onTimeStamp?: (seconds: number, microseconds: number) => void | Promise<void>,
+  onTimeStamp?: (seconds: number, microseconds: number, position: number) => void | Promise<void>,
   onVoltageHumidity?: (voltage: number, humidity: number) => void | Promise<void>,
   onTemperature?: (temperature: number) => void | Promise<void>,
   onLostSamples?: (time: TaiDate | null, count: number) => void | Promise<void>,
@@ -21,13 +19,13 @@ export interface MetaFrameCallbacks {
   onSeismometerEvent?: (status: number | string) => void | Promise<void>,
 }
 
-export const parseMetaFrame = async (data: DataView, callbacks: MetaFrameCallbacks): Promise<void> => {
+export const parseMetaFrame = async (data: DataView, callbacks: MetaFrameCallbacks, position: number): Promise<void> => {
   let frameId = data.getInt32(0)
   if (frameId === 1) {
 
     // Timestamp
     if (callbacks.onTimeStamp)
-      await callbacks.onTimeStamp(data.getUint32(4), data.getUint32(8))
+      await callbacks.onTimeStamp(data.getUint32(4), data.getUint32(8), position)
   } else if (frameId === 3) {
 
     // VoltageHumidity
