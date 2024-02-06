@@ -1,5 +1,5 @@
 // Enhanced text inputs with different validity checks for dynamic specs.
-// See 'validation.ts' for more details.
+// See '../validation.ts' for more details.
 import React, { ChangeEventHandler } from "react"
 
 type TextInputProps = {

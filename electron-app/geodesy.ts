@@ -23,7 +23,7 @@ export const distanceSphere = (lon1: number, lat1: number, lon2: number, lat2: n
 }
 
 // Value in meters.
-// Source: WGS84 - mean-radius
+// Source: WGS84 - earths mean-radius
 export const EARTH_RADIUS = 6371008.8
 
 // Lat/Lon in degrees!

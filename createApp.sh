@@ -16,7 +16,6 @@ BACKEND="electron-app"
 APP_WIN="6d6gui-win"
 APP_LINUX="6d6gui-linux"
 
-
 main() {
   (download_electron)
 
@@ -62,7 +61,6 @@ package_app_win() {
   cp "$BACKEND/templates/package.json" "$APP_WIN/resources/app/"
   mv "$APP_WIN/electron.exe" "$APP_WIN/6d6gui-win.exe"
 }
-
 
 package_app_linux() {
   cp -r "$FRONTEND/build/"* "$APP_LINUX/resources/app/frontend/"
