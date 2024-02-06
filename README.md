@@ -27,3 +27,9 @@ Current avaiability of functions for operating systems:
 * Future releases will extend the supported operating systems with conversions like `6d6mseed`.
 * A version for MacOs is planned, but not yet available.
 * We're thankful for every constructive criticism and if you have an idea for future functionalities, please contact us at `kum@kum-kiel.de`.
+
+## Licence
+
+The program is published under the terms of the GNU GPL 3.0. See the `LICENCE` file.
+
+Some parts of the program incorporate public domain or BSD licensed code.
