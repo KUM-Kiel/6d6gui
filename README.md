@@ -21,6 +21,9 @@ Current avaiability of functions for operating systems:
   * Run the `6d6gui-linux` file.
 
 ### Note
+
+* Please keep in mind that the current release is pre-alpha.
 * The Script will install a separate version for both operating systems.
 * Future releases will extend the supported operating systems with conversions like `6d6mseed`.
 * A version for MacOs is planned, but not yet available.
+* We're thankful for every constructive criticism and if you have an idea for future functionalities, please contact us at `kum@kum-kiel.de`.
