@@ -1,5 +1,5 @@
 // Showcase for the deviceList.
-import { Device } from "../../../electron-app/6d6watcher"
+import { Device } from "../../../electron-app/6d6-watcher"
 import React from "react"
 
 // Defining the structure of the Props for the FileList-page.

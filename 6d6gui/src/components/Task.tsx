@@ -1,5 +1,5 @@
-import { Task } from "../../../electron-app/spawnProcess"
-import IconButton from './IconButton'
+import { Task } from "../../../electron-app/spawn-process"
+import IconButton from './icon-button'
 import React from "react"
 
 type TaskProps = {

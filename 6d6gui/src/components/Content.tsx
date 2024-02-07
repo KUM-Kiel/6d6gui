@@ -1,13 +1,13 @@
 import { MSeedData, ReadData, CopyData, SegyData } from '../../../electron-app/main'
-import { Device } from '../../../electron-app/6d6watcher'
+import { Device } from '../../../electron-app/6d6-watcher'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import { ValidatedValue } from '../validation'
-import { Actions, fileObj } from '../App'
-import MSeed from './MSeed'
+import { Actions, fileObj } from '../app'
+import MSeed from './6d6mseed'
 import React from "react"
-import Copy from './Copy'
-import Read from './Read'
-import Segy from './Segy'
+import Copy from './6d6copy'
+import Read from './6d6read'
+import Segy from './6d6segy'
 
 // Defining the structure of the Content Props.
 type ContentProps = {

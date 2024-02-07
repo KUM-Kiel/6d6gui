@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kum-kiel.de/experiment.json",
+  "title": "Experiment",
+  "description": "Description of a seismic experiment",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of the experiment",
+      "type": "string"
+    },
+    "coordinates": {
+      "description": "The coordinates used in the experiment",
+      "type": "string",
+      "enum": ["WGS84"]
+    },
+    "stations": {
+      "description": "List of all the stations in the experiment",
+      "type": "array",
+      "items": {
+        "description": "A station",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The name of the station",
+            "type": "string"
+          },
+          "file": {
+            "description": "Path to the file where the recording is stored",
+            "type": "string"
+          },
+          "x": {
+            "description": "X coordinate of the station in degrees",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate of the station in degrees",
+            "type": "number"
+          },
+          "depth": {
+            "description": "Depth of the station in meters",
+            "type": "number"
+          }
+        },
+        "required": ["name", "file", "x", "y", "depth"]
+      }
+    },
+    "shots": {
+      "description": "List of all shots",
+      "type": "array",
+      "items": {
+        "description": "A shot",
+        "type": "object",
+        "properties": {
+          "number": {
+            "description": "Number of the shot",
+            "type": "number",
+            "format": "integer"
+          },
+          "time": {
+            "description": "Date and time of the shot",
+            "type": "string",
+            "format": "date-time"
+          },
+          "x": {
+            "description": "X coordinate of the shot in degrees",
+            "type": "number"
+          },
+          "y": {
+            "description": "Y coordinate of the shot in degrees",
+            "type": "number"
+          },
+          "depth": {
+            "description": "Depth of the shot in meters",
+            "type": "number"
+          }
+        },
+        "required": ["number", "time", "x", "y", "depth"]
+      }
+    }
+  },
+  "required": ["name", "coordinates", "stations", "shots"]
+}

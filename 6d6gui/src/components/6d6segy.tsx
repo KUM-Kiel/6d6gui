@@ -1,8 +1,8 @@
 import { useValidatedState, numericCheck, numericCheckFloat, ValidatedValue } from '../validation'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import { SegyData } from '../../../electron-app/main'
-import { Actions, fileObj } from '../App'
-import TextInput from './TextInput'
+import { Actions, fileObj } from '../app'
+import TextInput from './text-input'
 import React from 'react'
 
 type SegyProps = {

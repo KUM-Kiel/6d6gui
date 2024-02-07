@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import Watcher, { Device } from './6d6watcher'
-import TaskManager from './spawnProcess'
+import Watcher, { Device } from './6d6-watcher'
+import TaskManager from './spawn-process'
 import { execFile } from 'child_process'
 import { stat } from 'fs/promises'
 import Kum6D6 from './kum-6d6'
@@ -48,7 +48,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  createWindow()
+  if(process.argv.length >= 2) {
+    console.log('LOLOLOLOLO-LOLOLO-LOLOLOOOOO....HOHOHOHOHOOOOOOOOOOOOOOOOO')
+  } else {
+    createWindow()
+    console.log('LOLOLOLOLO-LOLOLO-LOLOLOOOOO....HOHOHOHOHOOOOO')
+  }
 })
 
 app.on('window-all-closed', () => {

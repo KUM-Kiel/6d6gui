@@ -1,4 +1,4 @@
-import { Action } from "../../../electron-app/spawnProcess"
+import { Action } from "../../../electron-app/spawn-process"
 import React from "react"
 
 // SVG values for the pictograms of the different values and actions.

@@ -1,6 +1,6 @@
 import { CopyData, MSeedData, ReadData, SegyData } from './main'
 import { ipcRenderer, contextBridge } from 'electron'
-import { Device } from './6d6watcher'
+import { Device } from './6d6-watcher'
 import { InfoJson } from './kum-6d6'
 
 // This file defines the API for the communication between

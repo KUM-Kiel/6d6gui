@@ -2,8 +2,8 @@
 import { InfoJson } from "../../../electron-app/kum-6d6"
 import { ReadData } from "../../../electron-app/main"
 import { ValidatedValue } from "../validation"
-import { Actions, fileObj } from "../App"
-import TextInput from './TextInput'
+import { Actions, fileObj } from "../app"
+import TextInput from './text-input'
 import React from "react"
 
 type ReadProps = {

@@ -1,6 +1,6 @@
 import { InfoJson } from '../../../electron-app/kum-6d6'
-import D6RecorderChannels from './D6RecorderChannels'
-import { fileObj } from '../App.js'
+import D6RecorderChannels from './d6-recorder-channels'
+import { fileObj } from '../app'
 import React from "react"
 
 type D6InfoProps = {

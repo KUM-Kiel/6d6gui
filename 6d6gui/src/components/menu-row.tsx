@@ -1,8 +1,8 @@
-import { Device } from "../../../electron-app/6d6watcher"
+import { Device } from "../../../electron-app/6d6-watcher"
 import { useEffect, useState } from 'react'
-import { MenuElement } from "../App"
-import { setTheme } from './Themes'
-import MenuItem from './MenuItem'
+import { MenuElement } from "../app"
+import { setTheme } from './themes'
+import MenuItem from './menu-item'
 import React from "react"
 
 type MenuColumnProps = {

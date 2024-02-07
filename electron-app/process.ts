@@ -1,5 +1,5 @@
 import { ChildProcess, spawn } from 'child_process'
-import { Action } from './spawnProcess'
+import { Action } from './spawn-process'
 import readline from 'readline'
 import fs from 'fs'
 

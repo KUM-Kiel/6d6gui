@@ -1,10 +1,10 @@
 // Main Content for the use of 6D6Copy.
-import TextInput from './TextInput'
-import { Actions } from '../App'
+import TextInput from './text-input'
+import { Actions } from '../app'
 import React from "react"
 import { ValidatedValue } from '../validation'
 import { CopyData } from '../../../electron-app/main'
-import { Device } from '../../../electron-app/6d6watcher'
+import { Device } from '../../../electron-app/6d6-watcher'
 
 // Defining the structure of the Props for the Copy-page.
 type CopyProps = {

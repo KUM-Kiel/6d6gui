@@ -2,8 +2,8 @@ import useValidatedState, { alphaNumericCheck, outputTemplateCheck } from '../va
 import React, { ChangeEventHandler, useState } from 'react'
 import { InfoJson } from '../../../electron-app/kum-6d6'
 import { MSeedData } from '../../../electron-app/main'
-import { Actions, fileObj } from '../App'
-import TextInput from './TextInput'
+import { Actions, fileObj } from '../app'
+import TextInput from './text-input'
 
 // Distinguish between systems in Ordner to separate paths with the correct notation.
 const pathSeparator = (systemOS: string) => systemOS === 'win32' ? '\\' : '/'
