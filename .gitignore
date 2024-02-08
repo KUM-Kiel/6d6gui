@@ -6,6 +6,7 @@ dist/
 6d6gui-linux
 electron-app/memoryleak.js
 electron-app/testfileBSearch.js
+6d6gui/frontend/
 
 *.zip
 
