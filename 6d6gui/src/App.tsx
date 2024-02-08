@@ -11,7 +11,7 @@ import FileList from './components/file-list'
 import Content from './components/content'
 import Header from './components/header'
 import D6Info from './components/d6-info'
-import './App.css'
+import './app.css'
 
 type eventCallback = (event: any, ...data: any[]) => void
 declare global {

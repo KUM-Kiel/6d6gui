@@ -48,7 +48,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  if(process.argv.length >= 2) {
+  if(process.argv.length >= 3) {
     console.log('LOLOLOLOLO-LOLOLO-LOLOLOOOOO....HOHOHOHOHOOOOOOOOOOOOOOOOO')
   } else {
     createWindow()

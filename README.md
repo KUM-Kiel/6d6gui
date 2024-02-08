@@ -11,14 +11,14 @@ Current avaiability of functions for operating systems:
 
 ## Installation Instruction
 
-* Download the latest Release.
-* Go into the main folder.
-* Run the `createApp.sh` **bash**-script.
-* The script will install the correct version for the type of system you're running.
-* **Windows**:
-  * Run `6d6gui-win.exe`
-* **Linux**:
-  * Run the `6d6gui-linux` file.
+1.  Make sure you've installed the latest [Node Release](https://nodejs.org/en)
+2.  Download the latest Release of 6d6gui.
+3.  Go into the main folder.
+4.  Run `npm install`.
+5.  Run the `createApp.sh` **bash**-script.
+6.  The script will install the correct version for the type of system you're running.
+7.  **Windows**: Run `6d6gui-win.exe`.\
+    **Linux**: Run `6d6gui-linux`.
 
 ### Note
 

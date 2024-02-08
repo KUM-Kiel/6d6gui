@@ -81,6 +81,26 @@ export const combine6d6Headers = (headerOne: Kum6d6Header, headerTwo: Kum6d6Head
   if (headerOne.comment !== headerTwo.comment)
     throw new Error('Mismatched comments.')
 
+    console.log({headerOne})
+    console.log({headerTwo})
+    console.log({version: headerOne.version,
+      startTime: headerOne.time,
+      endTime: headerTwo.time,
+      sync: { time: headerOne.syncTime, deviation: headerOne.skew },
+      skew,
+      startAddressData: headerOne.address,
+      endAddressData: headerTwo.address,
+      sampleRate: headerOne.sampleRate,
+      writtenSamples: headerTwo.writtenSamples,
+      lostSamples: headerTwo.lostSamples,
+      bitDepth: headerOne.bitDepth,
+      recorderID: headerOne.recorderID,
+      rtcID: headerOne.rtcID,
+      positionOne: { latitude: headerOne.latitude, longitude: headerOne.latitude },
+      positionTwo: { latitude: headerTwo.latitude, longitude: headerTwo.longitude },
+      channels: headerOne.channels,
+      comment: headerOne.comment})
+
   return {
     version: headerOne.version,
     startTime: headerOne.time,
