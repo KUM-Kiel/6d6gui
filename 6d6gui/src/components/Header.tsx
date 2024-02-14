@@ -1,11 +1,13 @@
 // Header of the Application.
 import React from "react"
 
+const version = '0.0.1'
+
 // Header Component - might be a complete  overkill.
 const Header = ({ title }: {title:string}) => {
   return (
     <div >
-      <p className={'header'} >{title}</p>
+      <p className={'header'} >{title} - Version {version}</p>
     </div>
   )
 }

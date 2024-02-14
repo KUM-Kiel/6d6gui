@@ -120,7 +120,7 @@ export default function App() {
   // Three functions for inter process communication
   // (Requesting information and handling the responses accordingly.)
   const chooseShotfile = async (): Promise<void> => {
-    let shotfiles = await window.ipcRenderer.chooseFile('Shotfile', ['send', 'dat'])
+    let shotfiles = await window.ipcRenderer.chooseFile('Shotfile', ['csv'])
     if (shotfiles !== null && shotfiles.length === 1) setShotfile(shotfiles[0])
   }
 

@@ -12,23 +12,24 @@ const readFile = util.promisify(fs.readFile)
  * accepted by this parser are the following ones:
  *
  * I
- * Top-row: ShotNr, julday, y,   h, m, s, ms,     lat,       lon,       depth
- * example: 1       313     2023 9  45 57 500.000 54.3283244 10.1780946 800
+ * Top-row:  PROFILE,SHOT,TIME,LATITUDE,LONGITUDE,WATER DEPTH,SOURCE DEPTH,DISTANCE
+ * example:  2017,2001,2023-11-09T09:50:57.500Z,54.328,10.178,800,3,300
  *
  * II
- * Top-row: LINENAME SHOTPOINT GPS-TIME     :DATE         X_SEC   Y_SEC
- * example: 20170200 2001      2017.02.04_01:27:12.477000 605987 -271202
+ * Top-row: ShotNr, julday, y,   h, m, s, ms,     lat,       lon,       depth
+ * example: 1       313     2023 9  45 57 500.000 54.3283244 10.1780946 800
  *
  */
 
 export interface Shot {
   profile: string,
   shotNr: number,
+  time: TaiDate,
   lat: number,
   lon: number,
-  depth: number,
-  time: TaiDate,
-  distance: number
+  waterDepth: number,
+  sourceDepth: number,
+  distance: number | null
 }
 
 // Development legacy.
@@ -39,7 +40,44 @@ const getField = (fields: string[], name: string) => {
 }
 
 export const parseShotfile = (fileContent: string): Shot[] | null => {
-  return parseShotfileDat(fileContent) || parseShotFileSend(fileContent)
+  return parseShotfileCsv(fileContent)
+}
+
+export const parseShotfileCsv = (fileContent: string): Shot[] | null => {
+  const lines: string[] = fileContent.split(/\r?\n/g).map(v => v.trim()).filter(v => v)
+  const names: string[] = lines[0].toLowerCase().split(',').map(v => v.trim())
+
+  const profileIndex = names.indexOf('profile')
+  const shotNrIndex = names.indexOf('shot')
+  const timeIndex = names.indexOf('time')
+  const latIndex = names.indexOf('latitude')
+  const lonIndex = names.indexOf('longitude')
+  const waterDepthIndex = names.indexOf('water depth')
+  const sourceDepthIndex = names.indexOf('source depth')
+  const distanceIndex = names.indexOf('distance')
+
+  if (shotNrIndex < 0 || timeIndex < 0 || latIndex < 0 || lonIndex < 0) return null
+
+  const shots: Shot[] = []
+  for (let i = 1; i < lines.length; ++i) {
+    const fields = lines[i].split(',').map(v => v.trim())
+    if (fields.length !== names.length) {
+      return null
+    }
+    const profile = profileIndex >= 0 ? fields[profileIndex] : ''
+    const shotNr = parseInt(fields[shotNrIndex], 10)
+    const time = new TaiDate(fields[timeIndex])
+    const lat = parseFloat(fields[latIndex])
+    const lon = parseFloat(fields[lonIndex])
+    const waterDepth = waterDepthIndex >= 0 ? parseFloat(fields[waterDepthIndex]) : 0
+    const sourceDepth = sourceDepthIndex >= 0 ? parseFloat(fields[sourceDepthIndex]) : 0
+    const distance = distanceIndex >= 0 ? parseFloat(fields[distanceIndex]) : null
+
+    shots.push({
+      profile, shotNr, time, lat, lon, waterDepth, sourceDepth, distance
+    })
+  }
+  return shots.length > 0 ? shots : null
 }
 
 export const parseShotfileDat = (fileContent: string): Shot[] | null => {
@@ -58,7 +96,7 @@ export const parseShotfileDat = (fileContent: string): Shot[] | null => {
   const lonIndex = names.indexOf('lon')
   const depthIndex = names.indexOf('depth')
 
-  if (shotNrIndex < 0 || juldayIndex < 0 || yIndex < 0 || hIndex < 0 || mIndex < 0 || sIndex < 0 || msIndex < 0 || latIndex < 0 || lonIndex < 0 || depthIndex < 0 ) return null
+  if (shotNrIndex < 0 || juldayIndex < 0 || yIndex < 0 || hIndex < 0 || mIndex < 0 || sIndex < 0 || msIndex < 0 || latIndex < 0 || lonIndex < 0 || depthIndex < 0) return null
 
   const shots: Shot[] = []
   for (let i = 1; i < lines.length; ++i) {
@@ -76,11 +114,11 @@ export const parseShotfileDat = (fileContent: string): Shot[] | null => {
     const ms = parseFloat(fields[msIndex])
     const lat = parseFloat(fields[latIndex])
     const lon = parseFloat(fields[lonIndex])
-    const depth = parseFloat(fields[depthIndex])
+    const waterDepth = parseFloat(fields[depthIndex])
     const time = new TaiDate(y, 1, julday, h, m, s, ms * 1000)
 
     shots.push({
-      profile, shotNr, lat, lon, depth, time, distance: 0
+      profile, shotNr, lat, lon, waterDepth, sourceDepth: 0, time, distance: null
     })
   }
   return shots.length > 0 ? shots : null
@@ -89,18 +127,18 @@ export const parseShotfileDat = (fileContent: string): Shot[] | null => {
 // Works explicitly on a structure like the following:
 // 'linename, shotpoint, gps-time:date, x, y'
 export const parseShotFileSend = (fileContent: string): Shot[] | null => {
-  const scale = fileContent.includes('SEC') ? 3600 : 1
-  const regex: RegExp = /^([^ ]+)\s+(\d+)\s+(\d+)\.(\d+)\.(\d+)[ _\t]+(\d+):(\d+):(\d+(\.\d+)?)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
+  const regex: RegExp = /^([^ ]+)\,(\d+)\,(\d+)\,(\d+)\-(\d+)\-(\d+)[T]+(\d+):(\d+):(\d+(\.\d+)?)\s+([0-9.+-]+)\s+([0-9.+-]+)$/gm
   const shots = Array.from(fileContent.matchAll(regex)).map(match => {
     let s = parseFloat(match[8])
     return {
       profile: match[1],
       shotNr: parseInt(match[2]),
-      lat: parseFloat(match[10]) / scale,
-      lon: parseFloat(match[11]) / scale,
-      depth: 0,
+      lat: parseFloat(match[11]),
+      lon: parseFloat(match[10]),
+      waterDepth: 0,
+      sourceDepth: 0,
       time: new TaiDate(parseInt(match[3]), parseInt(match[4]), parseInt(match[5]), parseInt(match[6]), parseInt(match[7]), Math.floor(s), Math.floor(1e6 * (s - Math.floor(s)))),
-      distance: 0
+      distance: null
     }
   })
   return shots.length > 0 ? shots : null
@@ -108,6 +146,7 @@ export const parseShotFileSend = (fileContent: string): Shot[] | null => {
 
 export const readShotfile = async (filename: string): Promise<Shot[]> => {
   let parsedFile = parseShotfile(await readFile(filename, 'utf-8'))
+  console.log(parsedFile)
   if (parsedFile === null) throw new Error(`Can't parse the given file.`)
   return parsedFile
 }

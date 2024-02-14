@@ -14,9 +14,7 @@ const ebcdic = (s: string) => new Uint8Array(Array.from(s).map(c => '\x20\xa0\xe
  * This File defines the structure and names for the file- and trace-header
  * including the default values and whether a property is mandatory or not.
  *
- *
  */
-
 
 interface SegyBinaryHeader {
   jobIdentificationNumber?: number,

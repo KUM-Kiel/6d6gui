@@ -45,7 +45,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
       </button>
       {srcFile.filepath !== '' && (
         <div>
-          <p><b>6d6 file:</b></p>
+          <p><b>6D6 File</b></p>
           <span className='read-text-hightlight'>{srcFile.filepath}</span>
         </div>
       )}
@@ -64,7 +64,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
         </button>
         {destPath !== '' && (
           <div>
-            <p><b>Output direction:</b></p>
+            <p><b>Output Directory</b></p>
             <span className='read-text-hightlight'>{destPath}</span>
           </div>
         )}
@@ -83,18 +83,19 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
           placeholder={'Duration of a Trace in Seconds'}
         />
         <br />
+        <p><b>OBS Position</b></p>
         <div className="row">
-          <TextInput
-            value={lon.value}
-            valid={lon.valid}
-            changeFunction={setLon}
-            placeholder={'Longitude in degrees'}
-          />
           <TextInput
             value={lat.value}
             valid={lat.valid}
             changeFunction={setLat}
             placeholder={'Latitude in degrees'}
+          />
+          <TextInput
+            value={lon.value}
+            valid={lon.valid}
+            changeFunction={setLon}
+            placeholder={'Longitude in degrees'}
           />
         </div>
         <button
@@ -121,7 +122,7 @@ export const Segy = ({ actions, destPath, d6Info, srcFile, startProcessing, shot
               The <b>Filename</b> has to consist of alphanumeric characters.
             </p>
           )}
-          {!lon.valid && lat.valid && (
+          {!lon.valid && !lat.valid && (
             <p>
               You need to enter the <b>coordinates</b> of the station.
             </p>

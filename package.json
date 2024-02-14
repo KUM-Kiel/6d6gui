@@ -1,4 +1,5 @@
 {
+  "name": "6d6gui",
   "dependencies": {
     "@electron/asar": "^3.2.8",
     "@types/react": "^18.2.23",

@@ -53,20 +53,29 @@ export const kum6D6ToSegy = async (
       throw "The ShotFile is corrupted."
     }
 
+    let distances = []
+    let adjustSigns = false
+
     // Calculate distances
     let minimum = -1
     for (let i = 0; i < shotFile.length; ++i) {
-      let d = earthDistance(shotFile[i].lon, shotFile[i].lat, lon, lat)
-      if (minimum >= 0 && shotFile[minimum].distance > d) minimum = i
-      shotFile[i].distance = d
-    }
-    if (minimum > 0 && minimum + 1 < shotFile.length) {
-      if (shotFile[minimum - 1].distance > shotFile[minimum + 1].distance) {
-        minimum += 1
+      let d = shotFile[i].distance
+      if (d === null) {
+        d = earthDistance(shotFile[i].lon, shotFile[i].lat, lon, lat)
+        adjustSigns = true
       }
+      if (minimum < 0 || distances[minimum] > d) minimum = i
+      distances.push(d)
     }
-    for (let i = 0; i < minimum; ++i) {
-      shotFile[i].distance *= -1
+    if (adjustSigns) {
+      if (minimum > 0 && minimum + 1 < distances.length) {
+        if (distances[minimum - 1] > distances[minimum + 1]) {
+          minimum += 1
+        }
+      }
+      for (let i = 0; i < minimum; ++i) {
+        distances[i] *= -1
+      }
     }
     // Convert data
     for (let i = 0; i < shotFile.length; ++i) {
@@ -84,6 +93,8 @@ export const kum6D6ToSegy = async (
           scalarCoordinatesSpecified: -100,
           // Conversion of 'decimal degrees' to 'seconds of arc'.
           // WGS84 coordinates are used here.
+          groupCoordinateX: Math.round(lon * 60 * 60 * 100),
+          groupCoordinateY: Math.round(lat * 60 * 60 * 100),
           srcCoordinateX: Math.round(shot.lon * 60 * 60 * 100),
           srcCoordinateY: Math.round(shot.lat * 60 * 60 * 100),
           coordinatesUnits: 'seconds-of-arc',
@@ -94,7 +105,7 @@ export const kum6D6ToSegy = async (
           secondOfMinute: shot.time.sec(),
           timeBasisCode: 'utc',
           shotpointNumber: shot.shotNr,
-          distCenterSrcToCenterReceiver: shotFile[i].distance,
+          distCenterSrcToCenterReceiver: distances[i],
         })
       }
       let sampleFrames = 0

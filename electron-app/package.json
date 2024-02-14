@@ -1,6 +1,6 @@
 {
   "name": "6d6gui",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "A GUI for the use of the 6d6-compat",
   "main": "./dist/main.js",
   "scripts": {

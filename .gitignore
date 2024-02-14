@@ -7,6 +7,8 @@ dist/
 electron-app/memoryleak.js
 electron-app/testfileBSearch.js
 6d6gui/frontend/
+yarn.lock
+shotFileGen*
 
 *.zip
 

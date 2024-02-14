@@ -12,8 +12,8 @@ Current avaiability of functions for operating systems:
 ## Installation Instruction
 
 1.  Make sure you've installed the latest [Node Release](https://nodejs.org/en)
-2.  Download the latest Release of 6d6gui.
-3.  Go into the main folder.
+2.  Download the latest release of 6d6gui.
+3.  Go into the main folder of 6d6gui.
 4.  Run `npm install`.
 5.  Run the `createApp.sh` **bash**-script.
 6.  The script will install the correct version for the type of system you're running.
@@ -28,6 +28,20 @@ Current avaiability of functions for operating systems:
 * Scripted use of `6d6segy` is also in development.
 * A version for MacOs is planned, but not yet available.
 * We're thankful for every constructive criticism and if you have an idea for future functionalities, please contact us at `kum@kum-kiel.de`.
+
+### Shotfile Structure
+
+A **Shotfile** has to have the following structure:
+
+Profile  | Shot      | Time                        | Latitude | Longitude | Water Depth | Source Depth | Distance
+---------|-----------|-----------------------------|----------|-----------|-------------|--------------|---------
+20202013 | 0001      | 2013-02-20T01:27:12.477000Z |  54.326  |  10.179   | 4           | 4            | 335
+
+The coordinates go by the WGS84 System in decimal degrees.
+
+We *have* to go by a specified structure due to the unlimited possible variants of structuring this file.
+
+Profile, Water Depth, Source Depth and Distance are optional.
 
 ## Licence
 
