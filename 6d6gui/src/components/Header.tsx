@@ -1,7 +1,7 @@
 // Header of the Application.
 import React from "react"
 
-const version = '0.0.1'
+const version = '0.0.2'
 
 // Header Component - might be a complete  overkill.
 const Header = ({ title }: {title:string}) => {
