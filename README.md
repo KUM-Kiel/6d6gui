@@ -35,7 +35,7 @@ A **Shotfile** has to have the following structure:
 
 Profile  | Shot      | Time                        | Latitude | Longitude | Water Depth | Source Depth | Distance
 ---------|-----------|-----------------------------|----------|-----------|-------------|--------------|---------
-20202013 | 0001      | 2013-02-20T01:27:12.477000Z |  54.326  |  10.179   | 4           | 4            | 335
+20112013 | 0001      | 2013-02-20T01:27:12.477000Z |  54.326  |  10.179   | 4           | 4            | 335
 
 The coordinates go by the WGS84 System in decimal degrees.
 
