@@ -31,7 +31,7 @@ Current avaiability of functions for operating systems:
 
 ### Shotfile Structure
 
-A **Shotfile** has to have the following structure:
+The **Shotfile** has to be a .csv file and contain a structure like the following: 
 
 Profile  | Shot      | Time                        | Latitude | Longitude | Water Depth | Source Depth | Distance
 ---------|-----------|-----------------------------|----------|-----------|-------------|--------------|---------
